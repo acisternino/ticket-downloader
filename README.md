@@ -26,19 +26,19 @@ Here is an example of this file:
     <?xml version="1.0" encoding="UTF-8"?>
     <servers>
         <server>
-            <!-- Simple string identifiying the server -->
+            <!-- Simple string identifying the server -->
             <id>TF</id>
 
-            <!-- Longer name for the server. -->
+            <!-- Longer name for the server -->
             <name>Internal TF server</name>
 
-            <!-- Root URL of the server. -->
+            <!-- Root URL of the server -->
             <url>https://tf.example.com</url>
 
-            <!-- Username. -->
+            <!-- Username -->
             <username>username</username>
 
-            <!-- Password. -->
+            <!-- Password -->
             <password>password</password>
         </server>
 
@@ -81,10 +81,10 @@ Build
 Tools needed:
 
 * Java 1.7 JDK
-* Gradle (not necessary)
+* Gradle (not strictly necessary)
 
-The project uses [Gradle] as build system but, to simplify develpment,
-the Gradle Wrapper is supprted. If you don't want to install Gradle, just use
+The project uses [Gradle] as build system but, to simplify development,
+the Gradle Wrapper is supported. If you don't want to install Gradle, just use
 the provided `gradlew` command like you would use the regular `gradle` command.
 
 ### Packaging ###
