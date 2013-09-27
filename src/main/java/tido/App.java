@@ -109,6 +109,8 @@ public class App extends Application {
     @Override
     public void stop() throws Exception {
         log.info( "quitting application");
+
+        ConfigManager.get().saveConfig();
     }
 
     //---- Support methods ---------------------------------------------------------

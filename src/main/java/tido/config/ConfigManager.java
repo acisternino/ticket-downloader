@@ -35,6 +35,9 @@ public class ConfigManager
     private static final String CONFIG_DIR_WIN = "TiDoFx";
     private static final String CONFIG_DIR_UNIX = "." + CONFIG_DIR_WIN.toLowerCase();
 
+    private static final String CONFIG_FILE = "config.xml";
+    private static final String SERVERS_FILE = "servers.xml";
+
     /** The directory that contains all configuration files. */
     private final Path configDir;
 
@@ -89,11 +92,20 @@ public class ConfigManager
         return config;
     }
 
+    /**
+     * Saves the configuration when quitting the application.
+     */
+    public void saveConfig() {
+        log.log( Level.INFO, "path: {0}", config.getBaseDirectory() );
+
+        JAXB.marshal( config, configDir.resolve( CONFIG_FILE ).toFile() );
+    }
+
     //---- Support methods ---------------------------------------------------------
 
     private void loadServers() {
 
-        Path serversPath = configDir.resolve( "servers.xml" );
+        Path serversPath = configDir.resolve( SERVERS_FILE);
 
         log.log( Level.INFO, "loading servers from {0}", serversPath );
 
@@ -108,7 +120,7 @@ public class ConfigManager
 
     private void loadConfigData() {
 
-        Path configPath = configDir.resolve( "config.xml" );
+        Path configPath = configDir.resolve( CONFIG_FILE );
 
         log.log( Level.INFO, "loading configuration from {0}", configPath );
 
