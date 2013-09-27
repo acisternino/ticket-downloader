@@ -1,0 +1,11 @@
+TODO List for TiDoFx
+====================
+
+* [DONE PARTIALLY] Handling of first startup without configuration and scripts.
+* Save/load of base directory in configuration.
+* Add and support a version number.
+* Extract analysis field.
+* Create simple launcher scripts.
+* Attach progress to both services.
+* Add String.js mention to the readme.
+* Add icons references to the readme.

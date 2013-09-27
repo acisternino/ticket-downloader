@@ -1,0 +1,61 @@
+apply from: 'http://dl.bintray.com/content/shemnon/javafx-gradle/0.3.0/javafx.plugin'
+apply plugin: 'java'
+
+group = 'com.github.acisternino.tidofx'
+version = '0.0.1'
+
+sourceCompatibility = 1.7
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+    compile     'org.jsoup:jsoup:1.7.+'
+
+    testCompile 'junit:junit:4.+'
+    testCompile 'com.googlecode.jmockit:jmockit:1.+'
+}
+
+javafx {
+    appID 'TiDoFx'
+    appName 'Ticket Downloader'
+
+    mainClass = 'tido.App'
+
+    systemProperties = [ 'java.util.logging.config.file': 'logging.properties' ]
+    jvmArgs = [ '-client' ]
+
+    profiles {
+        // not every possible platform override, but ones that have a known impact
+        windows {
+            id = '45795590-86a0-45d9-a748-97547058303f'
+            javaRuntime = 'C:/Program Files (x86)/Java/jdk1.7.0_40'
+        }
+        linux {
+            // linux doesn't care about id, it goes un-used at the moment
+            category = 'Development'
+            // good luck finding a standard location for the JDK
+            javaRuntime = '/opt/jdk1.7.0_40'
+        }
+    }
+
+    copyright = 'Copyright (c) 2013 Andrea Cisternino'
+    description = 'A simple JavaFX application to download ticket attachments from a TeamForge instance.'
+    licenseType = 'Apache v2.0'
+    vendor = 'Andrea Cisternino'
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '1.7'
+}
+
+tasks.withType(Compile) {
+    options.encoding = 'UTF-8'
+    options.compilerArgs << "-Xlint:unchecked"
+}
+
+test {
+    maxHeapSize = "512m"
+}

@@ -1,0 +1,45 @@
+/*******************************************************************
+ * Main CSS stylesheet for the Ticket Downloader Application
+ ******************************************************************/
+
+/*
+ * Empty table rows.
+ */
+.table-row-cell:empty {
+    -fx-background-color: white;
+}
+.table-row-cell:empty .table-cell {
+    -fx-border-width: 0px;
+}
+
+/*
+ * Table cells alignment. Class are defined using a CellFactory in the controller.
+ */
+.attchNumCell {
+    -fx-alignment: top-right;
+}
+.processedCell {
+    -fx-alignment: top-center;
+}
+ /*
+  * Table headers.
+  */
+.table-view .column-header {
+    -fx-font-size: 12;
+}
+#titleCol .label {
+    -fx-alignment: baseline-left;
+}
+#trackerCol .label {
+    -fx-alignment: baseline-left;
+}
+#artifactIdCol .label {
+    -fx-alignment: baseline-left;
+}
+#attchNumCol .label {
+    -fx-alignment: baseline-right;
+}
+/* padding for the table headers */
+.column-header .label {
+    -fx-label-padding: 0 3 0 3;
+}
