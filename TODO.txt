@@ -3,10 +3,10 @@ TODO List for TiDoFx
 
 * [DONE] Handling of first startup without configuration and scripts.
 * [DONE] Save/load of base directory in configuration.
-* Externalize javascript renamer script.
+* [DONE] Externalize JavaScript directory naming script.
 * Add and support a version number.
 * Extract analysis field.
 * Create simple launcher scripts.
 * Attach progress to both services.
-* Add String.js mention to the readme.
-* Add icons references to the readme.
+* Add String.js mention to the README.
+* Add icons references to the README.

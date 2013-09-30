@@ -29,15 +29,19 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
+import tido.config.ConfigManager;
 import tido.model.Ticket;
 
 /**
  *
- * @author Andrea
+ * @author Andrea Cisternino
  */
 public class JsTicketDirectoryNamer implements TicketDirectoryNamer
 {
     private static final Logger log = Logger.getLogger( JsTicketDirectoryNamer.class.getName() );
+
+    /** Name of the default JS naming script. Loaded from classpath. */
+    private static final String JS_NAMER_FILE_DEFAULT = "dir-namer-default.js";
 
     private String baseDir = ".";
 
@@ -68,9 +72,16 @@ public class JsTicketDirectoryNamer implements TicketDirectoryNamer
             // string.js library from http://stringjs.com
             evalFromClasspath( "/js/string.min.js" );
 
-            // load default renaming script
-            // TODO override with script from configuration
-            evalFromClasspath( "/js/rename-default.js" );
+            // load directory naming script
+            String namingScript = ConfigManager.get().namingScript();
+
+            if ( namingScript == null || namingScript.length() == 0 ) {
+                // load default
+                evalFromClasspath( "/js/" + JS_NAMER_FILE_DEFAULT );
+            } else {
+                // load custom version in config directory
+                engine.eval( namingScript );
+            }
 
         } catch ( ScriptException ex ) {
             log.log( Level.SEVERE, null, ex );

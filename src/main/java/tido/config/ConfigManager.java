@@ -15,8 +15,12 @@
  */
 package tido.config;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -37,6 +41,7 @@ public class ConfigManager
 
     private static final String CONFIG_FILE = "config.xml";
     private static final String SERVERS_FILE = "servers.xml";
+    private static final String JS_NAMER_FILE = "dir-namer.js";
 
     /** The directory that contains all configuration files. */
     private final Path configDir;
@@ -50,6 +55,10 @@ public class ConfigManager
     /** General application configuration. */
     private ConfigData config;
 
+    /** The JavaScript naming script as string. */
+    private String jsNamingScript;
+
+    /** The singleton instance of the application configuration. */
     private static ConfigManager instance;
 
     //---- Lifecycle ---------------------------------------------------------------
@@ -70,6 +79,7 @@ public class ConfigManager
 
         loadServers();
         loadConfigData();
+        loadNamingScript();
     }
 
     //---- API ---------------------------------------------------------------------
@@ -92,6 +102,10 @@ public class ConfigManager
         return config;
     }
 
+    public String namingScript() {
+        return jsNamingScript;
+    }
+
     /**
      * Saves the configuration when quitting the application.
      */
@@ -107,7 +121,7 @@ public class ConfigManager
 
         Path serversPath = configDir.resolve( SERVERS_FILE);
 
-        log.log( Level.INFO, "loading servers from {0}", serversPath );
+        log.log( Level.INFO, "from {0}", serversPath );
 
         try {
             servers = JAXB.unmarshal( serversPath.toUri(), ServerList.class );
@@ -122,7 +136,7 @@ public class ConfigManager
 
         Path configPath = configDir.resolve( CONFIG_FILE );
 
-        log.log( Level.INFO, "loading configuration from {0}", configPath );
+        log.log( Level.INFO, "from {0}", configPath );
 
         try {
             config = JAXB.unmarshal( configPath.toUri(), ConfigData.class );
@@ -133,6 +147,26 @@ public class ConfigManager
             config = new ConfigData();
             config.setBaseDirectory( baseDir.toString() );
         }
+    }
+
+    private void loadNamingScript() {
+
+        Path namerPath = configDir.resolve( JS_NAMER_FILE );
+
+        log.info( namerPath.toString() );
+
+        String content;
+        try {
+            content = new String( Files.readAllBytes( namerPath ), StandardCharsets.UTF_8 );
+        } catch ( NoSuchFileException ex ) {
+            log.info( "js script not found, using default" );
+            return;
+        } catch ( IOException ex ) {
+            log.log( Level.SEVERE, null, ex );
+            return;
+        }
+
+        jsNamingScript = content;
     }
 
 }
