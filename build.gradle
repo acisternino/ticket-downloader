@@ -57,7 +57,7 @@ task distribZip(type: Zip, dependsOn: jfxDeploy) {
 
 task wrapper(type: Wrapper) {
     description = 'Installs supports for the Gradle Wrapper in this project.'
-    gradleVersion = '1.7'
+    gradleVersion = '1.8'
 }
 
 tasks.withType(Compile) {
