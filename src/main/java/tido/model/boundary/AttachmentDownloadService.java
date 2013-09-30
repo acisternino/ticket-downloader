@@ -64,23 +64,28 @@ public class AttachmentDownloadService extends Service<Object>
     @Override
     protected Task<Object> createTask() {
 
-        final ObservableList<Ticket> ticketsLoc = getTickets();
-        final int ticketNum = ticketsLoc.size();
+        final ObservableList<Ticket> tl = getTickets();
+        final int ticketNum = tl.size();
 
         return new Task<Object>() {
             @Override
             protected Object call() throws Exception {
                 updateProgress( 0, ticketNum );
+
                 int t = 0;
                 final AttachmentFetcher fetcher = new AttachmentFetcher( namer );
-                for ( Ticket ticket : ticketsLoc ) {
+
+                for ( Ticket ticket : tl ) {
+
                     for ( AttachmentLink attachmentLink : ticket.getAttachments() ) {
                         log.log( Level.INFO, "downloading {0}", attachmentLink );
                         fetcher.fetch( attachmentLink );
-                        Thread.sleep( 500 );        // sleep a bit to avoid swamping the server
+                        Thread.sleep( 500 );        // wait a bit to avoid swamping the server
                     }
                     // TODO handle return code from all attachments
-                    // TODO save other properties (description analysis etc.)
+
+                    new TicketSaver( namer ).saveTicketFields( ticket );
+
                     ticket.setProcessed( TicketState.PROCESSED_OK );
                     updateProgress( ++t, ticketNum );
                 }

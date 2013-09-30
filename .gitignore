@@ -16,6 +16,7 @@ bin/
 private/
 
 # generic files to ignore
+tidofx.log
 *~
 *.lock
 *.DS_Store

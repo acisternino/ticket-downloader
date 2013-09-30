@@ -15,11 +15,57 @@
  */
 package tido.model.boundary;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import tido.model.Ticket;
+import tido.naming.TicketDirectoryNamer;
+
 /**
  *
  * @author Andrea Cisternino
  */
 public class TicketSaver
 {
+    private static final Logger log = Logger.getLogger( TicketSaver.class.getName() );
 
+    private final TicketDirectoryNamer namer;
+
+    //---- Lifecycle ---------------------------------------------------------------
+
+    TicketSaver(TicketDirectoryNamer namer) {
+        this.namer = namer;
+    }
+
+    //---- API ---------------------------------------------------------------------
+
+    /**
+     * Saves the additional ticket fields to text files in the ticket directory.
+     *
+     * @param ticket the ticket whose fields must be saved.
+     */
+    public void saveTicketFields(Ticket ticket) {
+        try {
+            Path ticketDir = namer.getTicketPath( ticket );
+
+            // description
+            log.fine( "description" );
+            Files.copy( new ByteArrayInputStream( ticket.getDescription().getBytes( StandardCharsets.UTF_8 ) ),
+                    ticketDir.resolve( "description.txt" ), StandardCopyOption.REPLACE_EXISTING );
+
+            // analysis
+            log.fine( "analysis" );
+            Files.copy( new ByteArrayInputStream( ticket.getAnalysis().getBytes( StandardCharsets.UTF_8 ) ),
+                    ticketDir.resolve( "analysis.txt" ), StandardCopyOption.REPLACE_EXISTING );
+        }
+        catch ( IOException ex ) {
+            log.log( Level.SEVERE, "error saving inner ticket fields", ex );
+        }
+    }
 }

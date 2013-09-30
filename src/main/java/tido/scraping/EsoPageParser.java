@@ -51,7 +51,7 @@ class EsoPageParser extends BasePageParser {
 
     @Override
     String extractAnalysis(Document page) {
-        return page.select( ANALYSIS_PATH ).first().text().trim();
+        return page.select( ANALYSIS_PATH ).get( 1 ).text().trim();
     }
 
 }
