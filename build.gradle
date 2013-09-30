@@ -31,7 +31,6 @@ javafx {
         // not every possible platform override, but ones that have a known impact
         windows {
             id = '45795590-86a0-45d9-a748-97547058303f'
-            javaRuntime = 'C:/Program Files (x86)/Java/jdk1.7.0_40'
         }
         linux {
             // linux doesn't care about id, it goes un-used at the moment
@@ -55,6 +54,7 @@ task distribZip(type: Zip, dependsOn: jfxDeploy) {
 }
 
 task wrapper(type: Wrapper) {
+    description = 'Installs supports for the Gradle Wrapper in this project.'
     gradleVersion = '1.7'
 }
 
