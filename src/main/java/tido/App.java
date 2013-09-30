@@ -51,6 +51,9 @@ public class App extends Application {
 
     private static final String FXML_FILE = "TiDoFx.fxml";
 
+    private static final double STAGE_MIN_WIDTH = 700d;
+    private static final double STAGE_MIN_HEIGHT = 500d;
+
     // enable using system proxy if set
     static { System.setProperty( "java.net.useSystemProxies", "true" ); }
 
@@ -94,6 +97,8 @@ public class App extends Application {
         Scene scene = new Scene( page, Color.WHITESMOKE );
 
         stage.setTitle( "TiDoFx - Lite" );
+        stage.setMinHeight( STAGE_MIN_HEIGHT );
+        stage.setMinWidth( STAGE_MIN_WIDTH );
         stage.setScene( scene );
         stage.sizeToScene();
 
