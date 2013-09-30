@@ -50,7 +50,9 @@ task distribZip(type: Zip, dependsOn: jfxDeploy) {
     description = 'Assembles a zip file for the complete bundle.'
 
     from "${buildDir}/distributions/bundles/${javafx.appName}"
-    from 'logging.properties'
+    from( 'logging.properties' ) {
+        into 'app'
+    }
 }
 
 task wrapper(type: Wrapper) {
