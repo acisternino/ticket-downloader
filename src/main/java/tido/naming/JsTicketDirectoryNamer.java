@@ -98,7 +98,7 @@ public class JsTicketDirectoryNamer implements TicketDirectoryNamer
         if ( nameCache.containsKey( ticket ) ) {
             tp = nameCache.get( ticket );
             if ( tp != null ) {
-                log.log( Level.FINE, "path found in cache: {0}", tp.toString() );
+                log.log( Level.FINE, "found in cache: {0}", tp.toString() );
                 return tp;
             }
         }
@@ -107,7 +107,7 @@ public class JsTicketDirectoryNamer implements TicketDirectoryNamer
         String ticketDir = null;
         try {
             Invocable eng = (Invocable) engine;
-            ticketDir = (String) eng.invokeFunction( "generateName", baseDir, ticket );
+            ticketDir = (String) eng.invokeFunction( "generateName", ticket );
         } catch ( ScriptException | NoSuchMethodException ex ) {
             log.log( Level.SEVERE, null, ex );
         }
@@ -117,7 +117,7 @@ public class JsTicketDirectoryNamer implements TicketDirectoryNamer
             log.log( Level.FINE, "js problems; backup name: {0}", tp.toString());
         }
         else {
-            tp = Paths.get( ticketDir );
+            tp = Paths.get( baseDir, ticketDir );
             log.log( Level.FINE, "generated: {0}", ticketDir);
         }
 
@@ -126,6 +126,11 @@ public class JsTicketDirectoryNamer implements TicketDirectoryNamer
         return tp;
     }
 
+    /**
+     * Sets the name of the base directory for the ticket folders.
+     *
+     * @param dirName the name of the directory.
+     */
     @Override
     public void setBaseDir(String dirName) {
 
