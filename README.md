@@ -29,10 +29,22 @@ The current naming convention for the ticket directories is:
 All punctuation and illegal characters are removed from the final name.
 
 
-### Server configuration ###
+### Configuration ###
+
+The program configuration data is stored in the following directories:
+
+* `%APPDATA%\TiDoFx` on Windows (e.g. `C:\Users\JohnDoe\AppData\Roaming\TiDoFx`).
+* `~/.tidofx` on Linux.
+
+This directory is automatically created when the program is started for
+the first time.
+
+
+#### Server configuration ####
 
 Credentials for the TeamForge servers known to the user must be manually
-entered in a configuration file named `servers.xml`.
+entered in a configuration file named `servers.xml` located in the
+configuration directory.
 
 Here is an example of this file:
 
@@ -58,64 +70,27 @@ Here is an example of this file:
         <!-- Add other server elements here -->
     </servers>
 
-Once created, the servers file should be copied to the local application
-configuration directory. The location of this directory depends on the
-Operating System:
-
-* `%APPDATA%\TiDoFx` on Windows (e.g. `C:\Users\JohnDoe\AppData\Roaming\TiDoFx`).
-* `~/.tidofx` on Linux.
-
-This directory must be manually created by the user before saving the servers file.
 
 Future versions of the application will streamline this entire process.
 
 
-### Ticket directory name customisation ###
+#### Ticket directory name customisation ####
 
-The logic for generating the directory names is implemented as a JavaScript
-function embedded in the application.
+The logic for generating the directory names is implemented in a JavaScript
+file loaded by the application at run-time.
 
-To customise the directory name, create a JavaScript file named `dir-namer.js`
-in the configuration directory, alongside the other configuration files.
+To customise the ticket directory name, modify the JavaScript file named
+`dir-namer.js` in the configuration directory.
 
-What follows is the script used to generate the default directory names.
-
-    /*
-     * This function must return a string that represents the path
-     * where the ticket artifacts will be saved.
-     *
-     * Global variables:
-     *      "S": the main String.js object with many utility methods to operate on strings.
-     *      "separator": the platform directory separator character.
-     *
-     * Arguments:
-     *      "ticket": the tido.model.Ticket java object containing the ticket data.
-     *
-     * For more information on String.js see: http://stringjs.com
-     */
-    function generateName( ticket ) {
-
-        // convert from Java to JavaScript strings
-        // this needed to operate on string using String.js functions
-        var title = "" + ticket.title;
-
-        // calculate name
-        var cleaned = S( title ).trim().stripPunctuation().collapseWhitespace().replaceAll(' ', '_').s;
-        cleaned = cleaned.toLowerCase();
-
-        var ret = ticket.id + "_" + cleaned;
-
-        return ret;
-    }
-
-The script must define a function named `generateName` that takes one argument:
+The script defines a function named `generateName` that takes one argument:
 
 * __ticket__  
   The tido.model.Ticket java object containing the ticket data.
 
-and return a string with the generated ticket directory name.
+and returns a string with the generated ticket directory name.
 
-The `Ticket` object contains the following fields:
+The `Ticket` object contains the following fields that can be used to generate
+a directory name:
 
 * __url__  
   The complete artifact URL (e.g. `https://sf43.elektrobit.com/sf/go/artf74149`).
@@ -138,8 +113,6 @@ The `Ticket` object contains the following fields:
 * __analysis__  
   The ticket analysis.
 
-They all can be used to generate a directory name.
-
 
 Build
 -----
@@ -152,6 +125,7 @@ Tools needed:
 The project uses [Gradle] as build system but, to simplify development,
 the Gradle Wrapper is supported. If you don't want to install Gradle, just use
 the provided `gradlew` command like you would use the regular `gradle` command.
+
 
 ### Packaging ###
 

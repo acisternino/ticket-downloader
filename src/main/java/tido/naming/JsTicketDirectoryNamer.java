@@ -40,19 +40,13 @@ public class JsTicketDirectoryNamer implements TicketDirectoryNamer
 {
     private static final Logger log = Logger.getLogger( JsTicketDirectoryNamer.class.getName() );
 
-    /** Name of the default JS naming script. Loaded from classpath. */
-    private static final String JS_NAMER_FILE_DEFAULT = "dir-namer-default.js";
-
+    /** Safe default name for the base ticket directory. */
     private String baseDir = ".";
 
-    /**
-     * A simple cache for the generated directory names.
-     */
+    /** A simple cache for the generated directory names. */
     private final WeakHashMap<Ticket, Path> nameCache = new WeakHashMap<>();
 
-    /**
-     * The JavaScript engine used to run the name generator function.
-     */
+    /** The JavaScript engine used to run the name generator function. */
     private final ScriptEngine engine;
 
     //---- Lifecycle ---------------------------------------------------------------
@@ -63,7 +57,7 @@ public class JsTicketDirectoryNamer implements TicketDirectoryNamer
         engine = new ScriptEngineManager().getEngineByName( "JavaScript" );
         try {
             // inject some global variables
-            engine.put( "log", Logger.getLogger( "tido.javascript" ) );
+            engine.put( "log", Logger.getAnonymousLogger() );
             engine.put( "separator", File.separator );
 
             // this is needed to support string.js
@@ -73,18 +67,10 @@ public class JsTicketDirectoryNamer implements TicketDirectoryNamer
             evalFromClasspath( "/js/string.min.js" );
 
             // load directory naming script
-            String namingScript = ConfigManager.get().namingScript();
-
-            if ( namingScript == null || namingScript.length() == 0 ) {
-                // load default
-                evalFromClasspath( "/js/" + JS_NAMER_FILE_DEFAULT );
-            } else {
-                // load custom version in config directory
-                engine.eval( namingScript );
-            }
+            engine.eval( ConfigManager.get().namingScript() );
 
         } catch ( ScriptException ex ) {
-            log.log( Level.SEVERE, null, ex );
+            log.log( Level.SEVERE, "in constructor:", ex );
         }
     }
 
@@ -150,8 +136,8 @@ public class JsTicketDirectoryNamer implements TicketDirectoryNamer
      */
     private Object evalFromClasspath(String scriptName) throws ScriptException {
         log.fine( scriptName );
-        InputStream tunerScript = this.getClass().getResourceAsStream( scriptName );
-        return engine.eval( new InputStreamReader( tunerScript ) );
+        InputStream is = this.getClass().getResourceAsStream( scriptName );
+        return engine.eval( new InputStreamReader( is ) );
     }
 
     /**
