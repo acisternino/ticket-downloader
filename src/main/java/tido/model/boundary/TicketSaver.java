@@ -55,17 +55,21 @@ public class TicketSaver
             Path ticketDir = namer.getTicketPath( ticket );
 
             // description
-            log.fine( "description" );
-            Files.copy( new ByteArrayInputStream( ticket.getDescription().getBytes( StandardCharsets.UTF_8 ) ),
-                    ticketDir.resolve( "description.txt" ), StandardCopyOption.REPLACE_EXISTING );
+            if ( ticket.getDescription().length() > 0 ) {
+                log.fine( "description" );
+                Files.copy( new ByteArrayInputStream( ticket.getDescription().getBytes( StandardCharsets.UTF_8 ) ),
+                        ticketDir.resolve( "description.txt" ), StandardCopyOption.REPLACE_EXISTING );
+            }
 
             // analysis
-            log.fine( "analysis" );
-            Files.copy( new ByteArrayInputStream( ticket.getAnalysis().getBytes( StandardCharsets.UTF_8 ) ),
-                    ticketDir.resolve( "analysis.txt" ), StandardCopyOption.REPLACE_EXISTING );
+            if ( ticket.getAnalysis().length() > 0 ) {
+                log.fine( "analysis" );
+                Files.copy( new ByteArrayInputStream( ticket.getAnalysis().getBytes( StandardCharsets.UTF_8 ) ),
+                        ticketDir.resolve( "analysis.txt" ), StandardCopyOption.REPLACE_EXISTING );
+            }
         }
         catch ( IOException ex ) {
-            log.log( Level.SEVERE, "error saving inner ticket fields", ex );
+            log.log( Level.SEVERE, "saving ticket fields:", ex );
         }
     }
 }
