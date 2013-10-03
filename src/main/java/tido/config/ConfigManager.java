@@ -15,12 +15,13 @@
  */
 package tido.config;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -28,7 +29,10 @@ import java.util.logging.Logger;
 import javax.xml.bind.DataBindingException;
 import javax.xml.bind.JAXB;
 
+import tido.Utils;
+
 /**
+ * Manages the configuration of the application.
  *
  * @author Andrea Cisternino
  */
@@ -47,7 +51,7 @@ public class ConfigManager
     private final Path configDir;
 
     /** The initial directory where tickets will be stored. */
-    private Path baseDir;
+    private final Path ticketsBaseDir;
 
     /** The list of servers we can download tickets from. */
     private ServerList servers;
@@ -55,7 +59,7 @@ public class ConfigManager
     /** General application configuration. */
     private ConfigData config;
 
-    /** The JavaScript naming script as string. */
+    /** The JavaScript naming script as a String. */
     private String jsNamingScript;
 
     /** The singleton instance of the application configuration. */
@@ -70,16 +74,12 @@ public class ConfigManager
         if ( System.getProperty( "os.name" ).startsWith( "Windows" ) ) {
             // Windows
             configDir = dfs.getPath( System.getenv( "APPDATA" ), CONFIG_DIR_WIN);
-            baseDir = dfs.getPath( System.getenv( "USERPROFILE" ), "Documents", "tickets" );
+            ticketsBaseDir = dfs.getPath( System.getenv( "USERPROFILE" ), "Documents", "tickets" );
         } else {
             // Linux (and... ?)
             configDir = dfs.getPath( System.getProperty( "user.home" ), CONFIG_DIR_UNIX );
-            baseDir = dfs.getPath( System.getProperty( "user.home" ), "tickets" );
+            ticketsBaseDir = dfs.getPath( System.getProperty( "user.home" ), "tickets" );
         }
-
-        loadServers();
-        loadConfigData();
-        loadNamingScript();
     }
 
     //---- API ---------------------------------------------------------------------
@@ -90,6 +90,7 @@ public class ConfigManager
     public static ConfigManager get() {
         if ( instance == null ) {
             instance = new ConfigManager();
+            instance.init();
         }
         return instance;
     }
@@ -116,6 +117,25 @@ public class ConfigManager
     }
 
     //---- Support methods ---------------------------------------------------------
+
+    private void init() {
+
+        try {
+            // eventually create the configuration directory
+            if ( Files.notExists( configDir ) ) {
+                Files.createDirectory( configDir );
+                log.log( Level.INFO, "config dir created: {0}", configDir.toString() );
+            }
+        } catch ( IOException ex ) {
+            log.log( Level.SEVERE, "creating config dir:", ex );
+        }
+
+        // create and/or load JavaScript naming file
+        loadNamingScript();
+
+        loadServers();
+        loadConfigData();
+    }
 
     private void loadServers() {
 
@@ -145,25 +165,40 @@ public class ConfigManager
             log.warning( "config file not found, using defaults" );
 
             config = new ConfigData();
-            config.setBaseDirectory( baseDir.toString() );
+            config.setBaseDirectory( ticketsBaseDir.toString() );
         }
     }
 
     private void loadNamingScript() {
 
-        Path namerPath = configDir.resolve( JS_NAMER_FILE );
+        Path scriptPath = configDir.resolve( JS_NAMER_FILE );
 
-        log.info( namerPath.toString() );
+        String content = null;
 
-        String content;
         try {
-            content = new String( Files.readAllBytes( namerPath ), StandardCharsets.UTF_8 );
-        } catch ( NoSuchFileException ex ) {
-            log.info( "js script not found, using default" );
-            return;
+            if ( Files.notExists( scriptPath ) ) {
+
+                log.log( Level.INFO, "not found: {0}", scriptPath.toString() );
+
+                // load default one from classpath and copy in config dir
+                InputStream in = this.getClass().getResourceAsStream( "/js/" + JS_NAMER_FILE );
+                ByteArrayOutputStream out = new ByteArrayOutputStream( 2048 );
+
+                Utils.copyStream( in, out );
+                Files.write( scriptPath, out.toByteArray() );
+
+                content = new String( out.toByteArray(), StandardCharsets.UTF_8 );
+
+                log.info( "file created" );
+
+            } else {
+                log.info( scriptPath.toString() );
+
+                content = new String( Files.readAllBytes( scriptPath ), StandardCharsets.UTF_8 );
+            }
+
         } catch ( IOException ex ) {
-            log.log( Level.SEVERE, null, ex );
-            return;
+            log.log( Level.SEVERE, "loading naming script:", ex );
         }
 
         jsNamingScript = content;
