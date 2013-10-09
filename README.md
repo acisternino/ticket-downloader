@@ -133,9 +133,12 @@ A distributable archive can be created wit the following command:
 
     gradlew clean distribZip
 
-When the command terminates, a zip file containing the application and a
-private JRE packaged together. The archive is quite big but can be deployed
-on any machine regardless of local JRE availability.
+When the command terminates, a zip file can be found in the `build/distributions`
+directory. 
+
+This archive contains the application and a bundled private JRE packaged together.
+The archive is big but it can be deployed on any machine regardless of local
+JRE availability.
 
 
 ### Eclipse support ###
