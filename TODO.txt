@@ -6,7 +6,9 @@ TODO List for TiDoFx
 * [DONE] Externalize JavaScript directory naming script.
 * [DONE] Add String.js mention to the README.
 * [DONE] Add icons references to the README.
+* [DONE] Extract analysis field.
 * Add and support a version number.
-* Extract analysis field.
 * Create simple launcher scripts.
 * Attach progress to both services.
+* Improve tests.
+* Implement simple preferences dialog for servers.
