@@ -40,6 +40,9 @@ public class JsTicketDirectoryNamer implements TicketDirectoryNamer
 {
     private static final Logger log = Logger.getLogger( JsTicketDirectoryNamer.class.getName() );
 
+    /** The application configuration. */
+    private ConfigManager config;
+
     /** Safe default name for the base ticket directory. */
     private String baseDir = ".";
 
@@ -51,10 +54,13 @@ public class JsTicketDirectoryNamer implements TicketDirectoryNamer
 
     //---- Lifecycle ---------------------------------------------------------------
 
-    public JsTicketDirectoryNamer() {
+    public JsTicketDirectoryNamer(ConfigManager configMgr) {
+
+        baseDir = configMgr.config().getBaseDirectory();
 
         // JS engine
         engine = new ScriptEngineManager().getEngineByName( "JavaScript" );
+
         try {
             // inject some global variables
             engine.put( "log", Logger.getAnonymousLogger() );
@@ -63,11 +69,11 @@ public class JsTicketDirectoryNamer implements TicketDirectoryNamer
             // this is needed to support string.js
             engine.eval( "var window = this;");
 
-            // string.js library from http://stringjs.com
+            // load string.js library (see http://stringjs.com)
             evalFromClasspath( "/js/string.min.js" );
 
             // load directory naming script
-            engine.eval( ConfigManager.get().namingScript() );
+            engine.eval( configMgr.namingScript() );
 
         } catch ( ScriptException ex ) {
             log.log( Level.SEVERE, "in constructor:", ex );
@@ -119,9 +125,7 @@ public class JsTicketDirectoryNamer implements TicketDirectoryNamer
      */
     @Override
     public void setBaseDir(String dirName) {
-
         log.fine( dirName );
-
         baseDir = dirName;
     }
 
@@ -136,7 +140,7 @@ public class JsTicketDirectoryNamer implements TicketDirectoryNamer
      */
     private Object evalFromClasspath(String scriptName) throws ScriptException {
         log.fine( scriptName );
-        InputStream is = this.getClass().getResourceAsStream( scriptName );
+        InputStream is = getClass().getResourceAsStream( scriptName );
         return engine.eval( new InputStreamReader( is ) );
     }
 
@@ -144,7 +148,7 @@ public class JsTicketDirectoryNamer implements TicketDirectoryNamer
      * Returns a backup name for the ticket directory in case something goes
      * wrong with the JavaScript side.
      *
-     * @param ticket
+     * @param ticket the ticket being processed.
      * @return a default Path for the Ticket directory.
      */
     private Path backupName(Ticket ticket) {

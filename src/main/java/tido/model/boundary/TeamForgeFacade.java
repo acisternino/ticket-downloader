@@ -16,20 +16,18 @@
 package tido.model.boundary;
 
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.EventHandler;
 
+import tido.config.ConfigManager;
 import tido.model.Ticket;
 import tido.naming.JsTicketDirectoryNamer;
 import tido.naming.TicketDirectoryNamer;
@@ -42,9 +40,10 @@ public class TeamForgeFacade
 {
     private static final Logger log = Logger.getLogger( TeamForgeFacade.class.getName(), null );
 
+    /** The JavaFX service used to download the tickets. */
     private TicketDownloadService tds;
 
-    /** The JavaFX service used to download the attchments. */
+    /** The JavaFX service used to download the attachments of all the tickets in the list. */
     private final AttachmentDownloadService ads;
 
     /** The Namer used to generate the folder name. */
@@ -67,13 +66,13 @@ public class TeamForgeFacade
 
     //---- Lifecycle ---------------------------------------------------------------
 
-    public TeamForgeFacade() {
+    public TeamForgeFacade(ConfigManager config) {
 
         // namer
-        namer = new JsTicketDirectoryNamer();
+        namer = new JsTicketDirectoryNamer( config );
 
         // TicketDownloadService
-        tds = new TicketDownloadService();
+        tds = new TicketDownloadService( config );
         tds.setOnSucceeded( new EventHandler<WorkerStateEvent>() {
             @Override
             public void handle(WorkerStateEvent t) {
@@ -115,13 +114,13 @@ public class TeamForgeFacade
      */
     public void downloadAttchments() {
         log.info( "called" );
-
         ads.restart();
     }
 
     /**
+     * Called every time the GUI changes the base directory for tickets.
      *
-     * @param path
+     * @param path the new tickets directory.
      */
     public void setBaseDir(String path) {
         log.info( path );

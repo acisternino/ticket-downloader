@@ -82,19 +82,21 @@ public class TicketDownloaderViewModel implements Initializable {
     //---- End of FXML objects -----------------------------------------------------
 
     /** Class mediating all TeamForge interaction. */
-    private TeamForgeFacade tforge;
+    private final TeamForgeFacade tforge;
 
     /** The application configuration. */
-    private final ConfigData config = ConfigManager.get().config();
+    private final ConfigManager config;
 
     //---- Lifecycle ---------------------------------------------------------------
+
+    public TicketDownloaderViewModel(ConfigManager config, TeamForgeFacade tforge) {
+        this.config = config;
+        this.tforge = tforge;
+    }
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         log.log( Level.INFO, "from: {0}", url);
-
-        // model
-        tforge = new TeamForgeFacade();
 
         // configure all data bindings
         installBindings();
@@ -102,8 +104,7 @@ public class TicketDownloaderViewModel implements Initializable {
         // finish configuration of ticket table
         setupTable();
 
-        baseDir.setText( config.getBaseDirectory() );
-        tforge.setBaseDir( config.getBaseDirectory() );
+        baseDir.setText( config.config().getBaseDirectory() );
     }
 
     //---- GUI stuff ---------------------------------------------------------------
@@ -162,7 +163,7 @@ public class TicketDownloaderViewModel implements Initializable {
         if ( file != null ) {
             String path = file.getPath();
             baseDir.setText( path );
-            config.setBaseDirectory( path );
+            config.config().setBaseDirectory( path );
             tforge.setBaseDir( path );
         }
     }

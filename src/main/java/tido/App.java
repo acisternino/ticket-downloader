@@ -15,6 +15,7 @@
  */
 package tido;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -36,8 +37,10 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import javafx.util.Callback;
 
 import tido.config.ConfigManager;
+import tido.model.boundary.TeamForgeFacade;
 import tido.viewmodel.TicketDownloaderViewModel;
 
 /**
@@ -57,8 +60,16 @@ public class App extends Application {
     // enable using system proxy if set
     static { System.setProperty( "java.net.useSystemProxies", "true" ); }
 
+    //---- Main objects ------------------------------------------------------------
+
+    /** The application configuration. */
+    private ConfigManager config;
+
     /** The only ModelView of the application. */
     private TicketDownloaderViewModel ticketModelView;
+
+    /** Class mediating all TeamForge interaction. */
+    private TeamForgeFacade tforge;
 
     //---- Application -------------------------------------------------------------
 
@@ -67,12 +78,8 @@ public class App extends Application {
      */
     @Override
     public void init() throws Exception {
-
         // disable SSL certificates check
         setTrustAllCerts();
-
-        // load configuration
-        ConfigManager.get();
     }
 
     /*
@@ -81,18 +88,13 @@ public class App extends Application {
     @Override
     public void start(Stage stage) throws Exception {
 
-        FXMLLoader loader = new FXMLLoader();
+        // main application objects
+        config = new ConfigManager( stage ).init();
+        tforge = new TeamForgeFacade( config );
+        ticketModelView = new TicketDownloaderViewModel( config, tforge );
 
-        loader.setLocation( getClass().getResource( FXML_FILE ) );
-        log.log( Level.INFO, "loading from {0}", loader.getLocation());
-
-        Parent page;
-        try ( InputStream is = App.class.getResourceAsStream( FXML_FILE) )
-        {
-            page = (Parent) loader.load( is );
-        }
-
-        setupModelView( loader );
+        // user interface
+        Parent page = loadGui();
 
         Scene scene = new Scene( page, Color.WHITESMOKE );
 
@@ -115,10 +117,32 @@ public class App extends Application {
     public void stop() throws Exception {
         log.info( "quitting application");
 
-        ConfigManager.get().saveConfig();
+        config.saveConfig();
     }
 
     //---- Support methods ---------------------------------------------------------
+
+    private Parent loadGui() throws IOException {
+
+        FXMLLoader loader = new FXMLLoader();
+        loader.setLocation( getClass().getResource( FXML_FILE ) );
+        loader.setControllerFactory( new Callback<Class<?>, Object>() {
+            @Override
+            public Object call(Class<?> p) {
+                return ticketModelView;
+            }
+        });
+
+        log.log( Level.FINE, "loading from {0}", loader.getLocation());
+
+        Parent page;
+        try ( InputStream is = getClass().getResourceAsStream( FXML_FILE ) )
+        {
+            page = (Parent) loader.load( is );
+        }
+
+        return page;
+    }
 
     private void setTrustAllCerts() throws Exception {
         TrustManager[] trustAllCerts = new TrustManager[] {
@@ -151,13 +175,6 @@ public class App extends Application {
             // we can not recover from this exception
             log.log( Level.SEVERE, null, ex);
         }
-    }
-
-    private void setupModelView(FXMLLoader loader) {
-
-        ticketModelView = loader.<TicketDownloaderViewModel>getController();
-
-        // inject dependencies
     }
 
     //---- main() ------------------------------------------------------------------
