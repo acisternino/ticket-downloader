@@ -24,9 +24,9 @@ import java.util.regex.Pattern;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import tido.config.ServerInfo;
 import tido.model.AttachmentLink;
 import tido.model.Ticket;
-import tido.config.ServerInfo;
 
 /**
  *
@@ -97,7 +97,7 @@ public abstract class BasePageParser implements PageParser {
 
         // get other attributes parsing the page
         t.setTracker( extractTracker( page ) );
-        log.log( Level.INFO, "tracker: {0}", t.getTracker() );
+        log.log( Level.INFO, "tracker: \"{0}\"", t.getTracker() );
 
         t.setDescription( extractDescription( page ) );
         log.log( Level.INFO, "description length: {0}", t.getDescription().length() );
@@ -135,7 +135,7 @@ public abstract class BasePageParser implements PageParser {
 
         if ( m.find() ) {
             artifactId = m.group( 1 );
-            log.log( Level.FINE, "artifact: {0}", artifactId );
+            log.log( Level.FINE, "\"{0}\"", artifactId );
         }
         return artifactId;
     }
@@ -153,7 +153,7 @@ public abstract class BasePageParser implements PageParser {
 
         if ( m.find() ) {
             kpm = Long.parseLong( m.group( 1 ) );
-            log.log( Level.FINE, "kpm: {0,number,#}", kpm );
+            log.log( Level.FINE, "\"{0,number,#}\"", kpm );
         }
         return kpm;
     }
@@ -181,7 +181,7 @@ public abstract class BasePageParser implements PageParser {
 
         if ( tm.find() ) {
             tt = tm.group( 1 ).trim();
-            log.log( Level.FINE, "title: {0}", tt );
+            log.log( Level.FINE, "\"{0}\"", tt );
         }
         return tt;
     }
