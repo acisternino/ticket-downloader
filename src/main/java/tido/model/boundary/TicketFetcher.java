@@ -42,13 +42,13 @@ public class TicketFetcher {
     private static final String LOGIN_PATH = "/sf/sfmain/do/login";
     private static final int MAX_BODY_SIZE = 8 * 1024 * 1024;
 
-    // Application configuration
+    /** The application configuration. */
     private final ConfigManager config;
 
     //---- Lifecycle ---------------------------------------------------------------
 
-    public TicketFetcher() {
-        config = ConfigManager.get();
+    public TicketFetcher(ConfigManager config) {
+        this.config = config;
     }
 
     //---- API ---------------------------------------------------------------------

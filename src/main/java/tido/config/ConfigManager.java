@@ -16,6 +16,7 @@
 package tido.config;
 
 import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -28,6 +29,9 @@ import java.util.logging.Logger;
 
 import javax.xml.bind.DataBindingException;
 import javax.xml.bind.JAXB;
+import javax.xml.bind.JAXBException;
+
+import javafx.stage.Stage;
 
 import tido.Utils;
 
@@ -62,12 +66,14 @@ public class ConfigManager
     /** The JavaScript naming script as a String. */
     private String jsNamingScript;
 
-    /** The singleton instance of the application configuration. */
-    private static ConfigManager instance;
+    /** The main Stage of the Application. Used to display error dialogs. */
+    private final Stage stage;
 
     //---- Lifecycle ---------------------------------------------------------------
 
-    protected ConfigManager() {
+    public ConfigManager(Stage stage) {
+
+        this.stage = stage;
 
         final FileSystem dfs = FileSystems.getDefault();
 
@@ -82,18 +88,34 @@ public class ConfigManager
         }
     }
 
-    //---- API ---------------------------------------------------------------------
-
     /**
-     * @return the singleton instance of the application configuration.
+     * Completely initializes the instance.
+     *
+     * @return this to allow a fluent interface.
      */
-    public static ConfigManager get() {
-        if ( instance == null ) {
-            instance = new ConfigManager();
-            instance.init();
+    public ConfigManager init() {
+
+        // config directory
+        try {
+            // eventually create the configuration directory
+            if ( Files.notExists( configDir ) ) {
+                Files.createDirectory( configDir );
+                log.log( Level.INFO, "config dir created: {0}", configDir.toString() );
+            }
+        } catch ( IOException ex ) {
+            log.log( Level.SEVERE, "creating config dir:", ex );
         }
-        return instance;
+
+        // create and/or load JavaScript naming file
+        loadNamingScript();
+
+        loadServers( stage );
+        loadConfigData();
+
+        return this;
     }
+
+    //---- API ---------------------------------------------------------------------
 
     public ServerList servers() {
         return servers;
@@ -118,37 +140,31 @@ public class ConfigManager
 
     //---- Support methods ---------------------------------------------------------
 
-    private void init() {
+    /**
+     * Load the file with the TF servers info. Display a dialog in case of missing file.
+     *
+     * @param stage the {@link Stage} used to display dialogs.
+     */
+    private void loadServers(Stage stage) {
 
-        try {
-            // eventually create the configuration directory
-            if ( Files.notExists( configDir ) ) {
-                Files.createDirectory( configDir );
-                log.log( Level.INFO, "config dir created: {0}", configDir.toString() );
-            }
-        } catch ( IOException ex ) {
-            log.log( Level.SEVERE, "creating config dir:", ex );
-        }
-
-        // create and/or load JavaScript naming file
-        loadNamingScript();
-
-        loadServers();
-        loadConfigData();
-    }
-
-    private void loadServers() {
-
-        Path serversPath = configDir.resolve( SERVERS_FILE);
+        Path serversPath = configDir.resolve( SERVERS_FILE );
 
         log.log( Level.INFO, "from {0}", serversPath );
 
         try {
             servers = JAXB.unmarshal( serversPath.toUri(), ServerList.class );
         } catch ( DataBindingException ex ) {
-            // this is not OK
-            log.warning( "servers file not found" );
-            // TODO handle exception
+
+            JAXBException rootEx = (JAXBException) ex.getCause();
+
+            if ( rootEx.getCause() instanceof FileNotFoundException ) {
+                log.warning( "servers file not found" );
+                // TODO display dialog
+            } else {
+                // this is not OK
+                log.log( Level.SEVERE, "loading servers configuration file:", rootEx );
+                // TODO handle exception
+            }
         }
     }
 
