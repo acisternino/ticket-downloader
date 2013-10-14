@@ -13,6 +13,7 @@ repositories {
 
 dependencies {
     compile     'org.jsoup:jsoup:1.7.+'
+    compile     files( 'libs/javafx-dialogs-0.0.3.jar' )
 
     testCompile 'junit:junit:4.+'
     testCompile 'com.googlecode.jmockit:jmockit:1.+'

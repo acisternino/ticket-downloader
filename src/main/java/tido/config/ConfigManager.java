@@ -31,6 +31,7 @@ import javax.xml.bind.DataBindingException;
 import javax.xml.bind.JAXB;
 import javax.xml.bind.JAXBException;
 
+import javafx.scene.control.Dialogs;
 import javafx.stage.Stage;
 
 import tido.Utils;
@@ -159,7 +160,13 @@ public class ConfigManager
 
             if ( rootEx.getCause() instanceof FileNotFoundException ) {
                 log.warning( "servers file not found" );
-                // TODO display dialog
+                Dialogs.showErrorDialog( stage,
+                        "Servers configuration file not found!\n"
+                        + "Please create the file manually in\n"
+                        + configDir.toString() + "\n"
+                        + "and restart the aplication.",
+                        "Application configuration error", "Ticket Downloader" );
+                System.exit( 1 );
             } else {
                 // this is not OK
                 log.log( Level.SEVERE, "loading servers configuration file:", rootEx );
