@@ -3,7 +3,7 @@ apply plugin: 'java'
 
 group = 'com.github.acisternino.tidofx'
 
-version = '0.0.2'
+version = '0.0.3'
 
 sourceCompatibility = 1.7
 
@@ -43,9 +43,22 @@ javafx {
     }
 
     copyright = 'Copyright (c) 2013 Andrea Cisternino'
-    description = 'A simple JavaFX application to download ticket attachments from a TeamForge instance.'
+    description = 'A simple JavaFX application to download ticket attachments from a TeamForge server.'
     licenseType = 'Apache v2.0'
     vendor = 'Andrea Cisternino'
+
+    // icons go in src/deploy/package
+    icons {
+        shortcut = [
+                'icon-16.png',
+                'icon-32.png',
+                'icon-64.png',
+                'icon-128.png',
+                'icon-256.png'
+        ]
+        volume = shortcut
+        setup = 'icon-32.png'
+    }
 }
 
 task distribZip(type: Zip, dependsOn: jfxDeploy) {

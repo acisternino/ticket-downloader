@@ -35,6 +35,7 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.util.Callback;
@@ -103,6 +104,9 @@ public class App extends Application {
         stage.setMinWidth( STAGE_MIN_WIDTH );
         stage.setScene( scene );
         stage.sizeToScene();
+
+        stage.getIcons().add( new Image( "/img/icon-16.png" ) );
+        stage.getIcons().add( new Image( "/img/icon-32.png" ) );
 
         String uri = getClass().getResource( "TiDoFx.css" ).toExternalForm();
         scene.getStylesheets().add( uri );
