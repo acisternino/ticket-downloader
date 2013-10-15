@@ -64,6 +64,7 @@ public abstract class BasePageParser implements PageParser {
      */
     public static PageParser create( ServerInfo server ) {
 
+        // TODO this is very BAD because forces to use a specific id in the file!!
         switch ( server.getId() ) {
             case "EB":
                 return new EbPageParser( server );
@@ -72,7 +73,7 @@ public abstract class BasePageParser implements PageParser {
                 return new EsoPageParser( server );
 
             default:
-                throw new IllegalArgumentException( "wrong server id: " + server.getId() );
+                throw new IllegalArgumentException( "wrong server id: \"" + server.getId() + '"' );
         }
     }
 

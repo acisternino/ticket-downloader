@@ -22,9 +22,14 @@ import java.util.logging.Logger;
 
 import javax.security.auth.login.FailedLoginException;
 
+import javafx.application.Platform;
+import javafx.scene.control.Dialogs;
+
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import tido.App;
+import tido.Utils;
 import tido.config.ConfigManager;
 import tido.config.ServerInfo;
 import tido.model.Ticket;
@@ -91,6 +96,7 @@ public class TicketFetcher {
             log.log( Level.WARNING, "error: {0}", ex.getClass().getName() );
             throw ex;
         }
+        log.log( Level.FINE, "ticket page downloaded: \"{0}\"", ticketPage.title() );
 
         Ticket ticket = parseTicketPage( ticketPage, server );
         ticket.setUrl( ticketUrl );
@@ -143,6 +149,7 @@ public class TicketFetcher {
         } else {
             log.warning( "failed" );
             server.setSession( null );
+            // TODO display a dialog in the GUI thread, see below
             throw new FailedLoginException();
         }
     }
@@ -156,7 +163,21 @@ public class TicketFetcher {
      * @return the Ticket object.
     */
     private Ticket parseTicketPage(Document doc, ServerInfo server) {
-        return BasePageParser.create( server ).parse( doc );
+
+        Ticket t = null;
+        try {
+            t = BasePageParser.create( server ).parse( doc );
+        } catch ( final IllegalArgumentException ex ) {
+            log.warning( ex.getMessage() );
+            Platform.runLater( new Runnable() {
+                @Override public void run() {
+                    Dialogs.showWarningDialog( config.getStage(), Utils.capitalizeFirstLetter( ex.getMessage() )
+                            + "\n\nPlease verify the server configuration file and restart the application",
+                            "Problem parsing the ticket page.", App.FULL_NAME );
+                }
+            } );
+        }
+        return t;
     }
 
     /**

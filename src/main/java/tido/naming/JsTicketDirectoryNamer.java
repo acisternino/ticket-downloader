@@ -29,6 +29,11 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
+import javafx.application.Platform;
+import javafx.scene.control.Dialogs;
+
+import tido.App;
+import tido.Utils;
 import tido.config.ConfigManager;
 import tido.model.Ticket;
 
@@ -41,7 +46,7 @@ public class JsTicketDirectoryNamer implements TicketDirectoryNamer
     private static final Logger log = Logger.getLogger( JsTicketDirectoryNamer.class.getName() );
 
     /** The application configuration. */
-    private ConfigManager config;
+    private final ConfigManager config;
 
     /** Safe default name for the base ticket directory. */
     private String baseDir = ".";
@@ -54,9 +59,17 @@ public class JsTicketDirectoryNamer implements TicketDirectoryNamer
 
     //---- Lifecycle ---------------------------------------------------------------
 
-    public JsTicketDirectoryNamer(ConfigManager configMgr) {
+    /**
+     * Creates an instance of the TicketDirectorynamer.
+     *
+     * @param config the configuration manager of the application.
+     */
+    public JsTicketDirectoryNamer(final ConfigManager config) {
 
-        baseDir = configMgr.config().getBaseDirectory();
+        this.config = config;
+
+        // set the base directory
+        baseDir = config.config().getBaseDirectory();
 
         // JS engine
         engine = new ScriptEngineManager().getEngineByName( "JavaScript" );
@@ -73,10 +86,17 @@ public class JsTicketDirectoryNamer implements TicketDirectoryNamer
             evalFromClasspath( "/js/string.min.js" );
 
             // load directory naming script
-            engine.eval( configMgr.namingScript() );
+            engine.eval( config.namingScript() );
 
-        } catch ( ScriptException ex ) {
+        } catch ( final ScriptException ex ) {
             log.log( Level.SEVERE, "in constructor:", ex );
+            Platform.runLater( new Runnable() {
+                @Override public void run() {
+                    Dialogs.showErrorDialog( config.getStage(), Utils.capitalizeFirstLetter( ex.getCause().getMessage() )
+                            + "\n\nPlease correct the error and restart the application.",
+                            "Error parsing JavaScript renamer script.", App.FULL_NAME, ex );
+                }
+            } );
         }
     }
 

@@ -51,6 +51,9 @@ import tido.viewmodel.TicketDownloaderViewModel;
  */
 public class App extends Application {
 
+    public static final String FULL_NAME = "Ticket Downloader";
+    public static final String SHORT_NAME = "TiDoFx";
+
     private static final Logger log = Logger.getLogger( App.class.getName() );
 
     private static final String FXML_FILE = "TiDoFx.fxml";
@@ -59,7 +62,7 @@ public class App extends Application {
     private static final double STAGE_MIN_HEIGHT = 500d;
 
     // enable using system proxy if set
-    static { System.setProperty( "java.net.useSystemProxies", "true" ); }
+    static { System.setProperty( "java.net.useSystemProxies", "false" ); }
 
     //---- Main objects ------------------------------------------------------------
 

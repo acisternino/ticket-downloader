@@ -55,4 +55,17 @@ public final class Utils
         return count;
     }
 
+    /**
+     * Capitalize the first character of the given string.
+     *
+     * @param original the original string.
+     * @return the original string with the first letter upper-cased.
+     */
+    public static String capitalizeFirstLetter(String original) {
+        if ( original.length() == 0 ) {
+            return original;
+        }
+        return original.substring( 0, 1 ).toUpperCase() + original.substring( 1 );
+    }
+
 }

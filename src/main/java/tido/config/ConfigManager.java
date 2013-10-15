@@ -34,6 +34,7 @@ import javax.xml.bind.JAXBException;
 import javafx.scene.control.Dialogs;
 import javafx.stage.Stage;
 
+import tido.App;
 import tido.Utils;
 
 /**
@@ -91,6 +92,7 @@ public class ConfigManager
 
     /**
      * Completely initializes the instance.
+     * Must be run from the JavaFX GUI thread.
      *
      * @return this to allow a fluent interface.
      */
@@ -105,6 +107,11 @@ public class ConfigManager
             }
         } catch ( IOException ex ) {
             log.log( Level.SEVERE, "creating config dir:", ex );
+            Dialogs.showErrorDialog( stage,
+                    "Error creating the application configuration directory:\n"
+                    + configDir.toString(),
+                    "Application configuration error.", App.FULL_NAME, ex );
+            System.exit( 1 );
         }
 
         // create and/or load JavaScript naming file
@@ -139,6 +146,10 @@ public class ConfigManager
         JAXB.marshal( config, configDir.resolve( CONFIG_FILE ).toFile() );
     }
 
+    public Stage getStage() {
+        return stage;
+    }
+
     //---- Support methods ---------------------------------------------------------
 
     /**
@@ -163,14 +174,18 @@ public class ConfigManager
                 Dialogs.showErrorDialog( stage,
                         "Servers configuration file not found!\n"
                         + "Please create the file manually in\n"
-                        + configDir.toString() + "\n"
-                        + "and restart the aplication.",
-                        "Application configuration error", "Ticket Downloader" );
+                        + configDir.toString() + "\nand restart the aplication.",
+                        "Application configuration error.", App.FULL_NAME );
                 System.exit( 1 );
             } else {
                 // this is not OK
                 log.log( Level.SEVERE, "loading servers configuration file:", rootEx );
-                // TODO handle exception
+                Dialogs.showErrorDialog( stage,
+                        "Error parsing server configuration file!\n"
+                        + "A " + rootEx.getCause().getClass().getSimpleName()
+                        + " was thrown while reading the file.\n"
+                        + "Please fix the problem and restart the application.",
+                        "Application configuration error.", App.FULL_NAME, rootEx );
             }
         }
     }
