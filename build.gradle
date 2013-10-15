@@ -2,7 +2,8 @@ apply from: 'http://dl.bintray.com/content/shemnon/javafx-gradle/0.3.0/javafx.pl
 apply plugin: 'java'
 
 group = 'com.github.acisternino.tidofx'
-version = '0.0.1'
+
+version = '0.0.2'
 
 sourceCompatibility = 1.7
 
