@@ -34,6 +34,7 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.input.DataFormat;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
@@ -45,7 +46,6 @@ import javafx.scene.input.TransferMode;
 import javafx.stage.DirectoryChooser;
 import javafx.util.Callback;
 
-import tido.config.ConfigData;
 import tido.config.ConfigManager;
 import tido.model.Ticket;
 import tido.model.TicketState;
@@ -105,6 +105,11 @@ public class TicketDownloaderViewModel implements Initializable {
         setupTable();
 
         baseDir.setText( config.config().getBaseDirectory() );
+
+        // tooltips
+        fetchButton.setTooltip( new Tooltip( "Downloads the content of all\nthe tickets in the list." ) );
+        clearButton.setTooltip( new Tooltip( "Clears the list and readies the program\nfor other tickets." ) );
+        baseDirButton.setTooltip( new Tooltip( "Selects the base directory\nwhere tickets will be downloaded." ) );
     }
 
     //---- GUI stuff ---------------------------------------------------------------
