@@ -17,7 +17,7 @@ Installation and Configuration
 1. Start the application double clicking on _"Ticket Downloader.exe"_
 1. Drag&drop ticket links from the TeamForge page onto the central list.
 1. Select the base directory for the tickets by clicking on the _Choose_ button.
-1. Click on the _Fetch_ button.
+1. Click on the _Download_ button.
 
 All the attachments of the tickets in the list will be downloaded and saved
 in a number of ticket-specific directories located below the base directory.
@@ -149,8 +149,8 @@ are welcome.
 [Gradle]: http://www.gradle.org/
 
 
-Dependencies
-------------
+Credits
+-------
 
 This program uses:
 
