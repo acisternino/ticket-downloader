@@ -68,6 +68,7 @@ task distribZip(type: Zip, dependsOn: jfxDeploy) {
     from( 'logging.properties' ) {
         into 'app'
     }
+    from( 'LICENSE', 'README.md' )
 }
 
 task wrapper(type: Wrapper) {
