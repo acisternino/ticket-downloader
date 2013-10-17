@@ -165,6 +165,9 @@ public class ConfigManager
 
         try {
             servers = JAXB.unmarshal( serversPath.toUri(), ServerList.class );
+
+            checkPasswords( servers );
+
         } catch ( DataBindingException ex ) {
 
             JAXBException rootEx = (JAXBException) ex.getCause();
@@ -242,4 +245,22 @@ public class ConfigManager
         jsNamingScript = content;
     }
 
+    private void checkPasswords(final ServerList srvs) {
+
+        if ( srvs == null ) {
+            return;
+        }
+
+        for ( ServerInfo server : srvs.getServers() ) {
+            if ( Utils.isBlank( server.getPassword() ) ) {
+                log.log( Level.INFO, "server \"{0}\" has an empty password", server.getId() );
+
+                String passwd = Dialogs.showInputDialog( stage,
+                        "Please enter password for server \"" + server.getName() + '"',
+                        "Insert password.", App.FULL_NAME );
+
+                server.setPassword( passwd );
+            }
+        }
+    }
 }
