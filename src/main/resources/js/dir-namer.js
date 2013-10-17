@@ -10,6 +10,8 @@
  *      "ticket": the tido.model.Ticket java object containing the ticket data.
  *
  * For more information on String.js see: http://stringjs.com
+ *
+ * For JavaScript Strings see: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String
  */
 function generateName( ticket ) {
 
