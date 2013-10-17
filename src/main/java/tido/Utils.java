@@ -61,11 +61,20 @@ public final class Utils
      * @param original the original string.
      * @return the original string with the first letter upper-cased.
      */
-    public static String capitalizeFirstLetter(String original) {
+    public static String capitalizeFirstLetter(final String original) {
         if ( original.length() == 0 ) {
             return original;
         }
         return original.substring( 0, 1 ).toUpperCase() + original.substring( 1 );
     }
 
+    /**
+     * Checks if a String is whitespace, empty ("") or null.
+     *
+     * @param string the String to check, may be null.
+     * @return true if the String is null, empty or whitespace.
+     */
+    public static boolean isBlank(final String string) {
+        return string == null || string.isEmpty() || string.trim().isEmpty();
+    }
 }
