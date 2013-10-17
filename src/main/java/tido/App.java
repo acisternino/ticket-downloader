@@ -102,7 +102,7 @@ public class App extends Application {
 
         Scene scene = new Scene( page, Color.WHITESMOKE );
 
-        stage.setTitle( "TiDoFx - Lite" );
+        stage.setTitle( FULL_NAME );
         stage.setMinHeight( STAGE_MIN_HEIGHT );
         stage.setMinWidth( STAGE_MIN_WIDTH );
         stage.setScene( scene );
