@@ -11,4 +11,13 @@ TODO List for TiDoFx
 * Create simple launcher scripts.
 * Attach progress to both services.
 * Improve tests.
-* Implement simple preferences dialog for servers.
+* More docs on how to customize the directory name.
+
+Major Features
+==============
+
+* Download without errors tickets with no attachments.
+* Discover already downloaded attachments and skip them.
+* Implement simple preferences dialog.
+* Support dragging just the artifact number.
+* Make the code EB/ESO agnostic.
