@@ -21,9 +21,10 @@
 .processedCell {
     -fx-alignment: top-center;
 }
- /*
-  * Table headers.
-  */
+
+/*
+ * Table headers.
+ */
 .table-view .column-header {
     -fx-font-size: 12;
 }
@@ -41,5 +42,5 @@
 }
 /* padding for the table headers */
 .column-header .label {
-    -fx-label-padding: 0 3 0 3;
+    -fx-label-padding: 0 4 0 4;
 }
