@@ -82,12 +82,18 @@ public class AttachmentDownloadService extends Service<Object>
         return new Task<Object>() {
             @Override
             protected Object call() throws Exception {
+
                 updateProgress( 0, ticketNum );
+
+                log.fine( "starting attachment download" );
 
                 int t = 0;
                 final AttachmentFetcher fetcher = new AttachmentFetcher( namer );
 
                 for ( Ticket ticket : tl ) {
+
+                    log.log( Level.FINE, "{0}: {1} attachments",
+                            new Object[] { ticket.getId(), ticket.getAttachmentNum() } );
 
                     for ( AttachmentLink attachmentLink : ticket.getAttachments() ) {
                         log.log( Level.INFO, "downloading {0}", attachmentLink );

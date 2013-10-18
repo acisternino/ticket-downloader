@@ -67,9 +67,6 @@ public class TeamForgeFacade
 
     public TeamForgeFacade(ConfigManager config) {
 
-// namer
-//        namer = new JsTicketDirectoryNamer( config );
-
         // TicketDownloadService
         tds = new TicketDownloadService( config );
         tds.setOnSucceeded( new EventHandler<WorkerStateEvent>() {

@@ -54,6 +54,9 @@ public class TicketSaver
         try {
             Path ticketDir = namer.getTicketPath( ticket );
 
+            // create ticket dir if not already done, needed for tickets without attachments
+            Files.createDirectories( ticketDir );
+
             // description
             if ( ticket.getDescription().length() > 0 ) {
                 log.fine( "description" );
@@ -70,6 +73,7 @@ public class TicketSaver
         }
         catch ( IOException ex ) {
             log.log( Level.SEVERE, "saving ticket fields:", ex );
+            // TODO add dialog
         }
     }
 }
