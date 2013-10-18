@@ -41,7 +41,7 @@ public class AttachmentDownloadService extends Service<Object>
     private static final Logger log = Logger.getLogger( AttachmentDownloadService.class.getName() );
 
     /** The Namer used to generate the folder name. */
-    private  TicketDirectoryNamer namer;
+    private final TicketDirectoryNamer namer;
 
     /** The application configuration. */
     private final ConfigManager config;
@@ -91,6 +91,10 @@ public class AttachmentDownloadService extends Service<Object>
                 final AttachmentFetcher fetcher = new AttachmentFetcher( namer );
 
                 for ( Ticket ticket : tl ) {
+
+                    if ( ticket.isProcessed() != TicketState.NOT_PROCESSED ) {
+                        continue;
+                    }
 
                     log.log( Level.FINE, "{0}: {1} attachments",
                             new Object[] { ticket.getId(), ticket.getAttachmentNum() } );
