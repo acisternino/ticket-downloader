@@ -37,7 +37,7 @@ import tido.config.ServerInfo;
 public class Ticket
 {
     /** The server containing this Ticket. */
-    private ServerInfo source;
+    private final ServerInfo source;
 
     // TODO does it need to be observable?
     private ObservableList<AttachmentLink> attachments;
