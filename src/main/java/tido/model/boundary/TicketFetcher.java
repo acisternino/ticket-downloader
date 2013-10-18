@@ -16,24 +16,25 @@
 package tido.model.boundary;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.security.auth.login.FailedLoginException;
 
-import javafx.application.Platform;
-import javafx.scene.control.Dialogs;
-
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import tido.App;
+import tido.Dialogs.Wait;
 import tido.Utils;
 import tido.config.ConfigManager;
 import tido.config.ServerInfo;
+import tido.config.ServerList;
 import tido.model.Ticket;
 import tido.scraping.BasePageParser;
+import tido.scraping.PageParser;
 
 /**
  * This class fetches a Ticket page from TeamForge and parses the content.
@@ -69,6 +70,7 @@ public class TicketFetcher {
      * @return the Ticket object.
      * @throws IOException if an I/O error occurs while connecting to the TeamForge server.
      * @throws FailedLoginException if the server refuses the authentication attempt.
+     * @throws IllegalArgumentException if the ticket has an invalid URL.
      */
     public Ticket fetch(String ticketUrl) throws IOException, FailedLoginException {
 
@@ -81,11 +83,12 @@ public class TicketFetcher {
         }
 
         if ( ! server.isAuthenticated() ) {
-            login( server );
+            login( server );            // throws IOException, FailedLoginException
         }
 
         Document ticketPage;
         try {
+            // this can throw many exceptions, all derived from IOException
             ticketPage = Jsoup.connect( ticketUrl )
                     .cookies( server.getSession() )
                     .maxBodySize( MAX_BODY_SIZE )
@@ -98,8 +101,11 @@ public class TicketFetcher {
         }
         log.log( Level.FINE, "ticket page downloaded: \"{0}\"", ticketPage.title() );
 
+        // can return null in case of errors
         Ticket ticket = parseTicketPage( ticketPage, server );
-        ticket.setUrl( ticketUrl );
+        if ( ticket != null ) {
+            ticket.setUrl( ticketUrl );
+        }
 
         return ticket;
     }
@@ -128,6 +134,10 @@ public class TicketFetcher {
 
         log.log( Level.INFO, "logging in to {0}", server.getUrl() );
 
+        if ( Utils.isBlank( server.getPassword() ) ) {
+            server.setPassword( askPassword( server ) );
+        }
+
         Connection connection = Jsoup.connect( server.getUrl() + LOGIN_PATH );
         connection.data( "sfsubmit", "submit" );
         connection.data( "username", server.getUsername() );
@@ -136,8 +146,10 @@ public class TicketFetcher {
         try {
             // errors and timeouts are notified with an exception, see Jsoup javadocs
             connection.post();
+
         } catch ( IOException ex ) {
             log.log( Level.WARNING, "error: {0}", ex.getClass().getName() );
+            // TODO add dialog here
             throw ex;
         }
 
@@ -149,7 +161,7 @@ public class TicketFetcher {
         } else {
             log.warning( "failed" );
             server.setSession( null );
-            // TODO display a dialog in the GUI thread, see below
+            config.getDialogs().failedLoginError( server.getName(), Wait.NO );
             throw new FailedLoginException();
         }
     }
@@ -159,23 +171,18 @@ public class TicketFetcher {
     /**
      * Parses a page returning a Ticket object.
      *
-     * @param doc the downloaded {@link Document}.
-     * @return the Ticket object.
-    */
+     * @param doc the downloaded ticket page as {@link Document}.
+     * @return the Ticket object if the page could be parsed. Null otherwise.
+     */
     private Ticket parseTicketPage(Document doc, ServerInfo server) {
 
         Ticket t = null;
         try {
-            t = BasePageParser.create( server ).parse( doc );
-        } catch ( final IllegalArgumentException ex ) {
-            log.warning( ex.getMessage() );
-            Platform.runLater( new Runnable() {
-                @Override public void run() {
-                    Dialogs.showWarningDialog( config.getStage(), Utils.capitalizeFirstLetter( ex.getMessage() )
-                            + "\n\nPlease verify the server configuration file and restart the application",
-                            "Problem parsing the ticket page.", App.FULL_NAME );
-                }
-            } );
+            PageParser parser = BasePageParser.create( server );
+            t = parser.parse( doc );
+        } catch ( IllegalArgumentException ex ) {
+            log.log( Level.WARNING, "creating PageParser:", ex );
+            config.getDialogs().serversFileError( ex, Wait.NO );
         }
         return t;
     }
@@ -187,12 +194,34 @@ public class TicketFetcher {
      * @return the {@link ServerInfo} for the ticket if found, null otherwise.
      */
     private ServerInfo findServer(String ticketUrl) {
-        for ( ServerInfo server : config.servers().getServers() ) {
-            if ( ticketUrl.startsWith( server.getUrl() ) ) {
-                log.log( Level.INFO, "server found: {0}", server );
-                return server;
+
+        // servers are lazy loaded: this call can trigger the process
+        // in case of errors null is returned immediately and later a dialog
+        // is displayed in the GUI thread
+        ServerList servers = config.servers();
+
+        if ( servers != null ) {
+            for ( ServerInfo server : servers.getServers() ) {
+                if ( ticketUrl.startsWith( server.getUrl() ) ) {
+                    log.log( Level.INFO, "server found: {0}", server );
+                    return server;
+                }
             }
         }
         return null;
+    }
+
+    private String askPassword(ServerInfo server) {
+
+        String passwd = config.getDialogs().acceptPassword( server.getName() );
+
+        if ( passwd == null ) {
+            log.warning( "password canceled" );
+            passwd = "";
+        } else if ( Utils.isBlank( passwd ) ) {
+            log.warning( "empty password" );
+        }
+
+        return passwd;
     }
 }

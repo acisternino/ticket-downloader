@@ -15,6 +15,7 @@
  */
 package tido.model.boundary;
 
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -29,8 +30,6 @@ import javafx.event.EventHandler;
 
 import tido.config.ConfigManager;
 import tido.model.Ticket;
-import tido.naming.JsTicketDirectoryNamer;
-import tido.naming.TicketDirectoryNamer;
 
 /**
  *
@@ -46,8 +45,8 @@ public class TeamForgeFacade
     /** The JavaFX service used to download the attachments of all the tickets in the list. */
     private final AttachmentDownloadService ads;
 
-    /** The Namer used to generate the folder name. */
-    private final TicketDirectoryNamer namer;
+    /** The Namer used to generate the ticket directory name. */
+//    private final TicketDirectoryNamer namer;
 
     //---- Properties --------------------------------------------------------------
 
@@ -68,22 +67,22 @@ public class TeamForgeFacade
 
     public TeamForgeFacade(ConfigManager config) {
 
-        // namer
-        namer = new JsTicketDirectoryNamer( config );
+// namer
+//        namer = new JsTicketDirectoryNamer( config );
 
         // TicketDownloadService
         tds = new TicketDownloadService( config );
         tds.setOnSucceeded( new EventHandler<WorkerStateEvent>() {
             @Override
             public void handle(WorkerStateEvent t) {
-                list.addAll(tds.getValue() );
+                list.addAll( tds.getValue() );
                 log.info( "tickets downloaded" );
             }
         } );
         busy.bind( tds.runningProperty() );
 
         // AttachmentDownloadService
-        ads = new AttachmentDownloadService( namer );
+        ads = new AttachmentDownloadService( config );
         ads.setOnSucceeded( new EventHandler<WorkerStateEvent>() {
             @Override
             public void handle(WorkerStateEvent t) {
@@ -110,21 +109,23 @@ public class TeamForgeFacade
     }
 
     /**
-     *
+     * Download all the attachments of the tickets contained in the list.
      */
-    public void downloadAttchments() {
+    public void downloadAttachments() {
         log.info( "called" );
+
         ads.restart();
     }
 
     /**
-     * Called every time the GUI changes the base directory for tickets.
+     * Called by the GUI when the base directory for tickets changes.
      *
      * @param path the new tickets directory.
      */
     public void setBaseDir(String path) {
-        log.info( path );
-        namer.setBaseDir( path );
+        log.fine( path );
+
+        ads.setBaseDir( Paths.get( path ) );
     }
 
 }

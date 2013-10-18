@@ -82,10 +82,6 @@ public abstract class BasePageParser implements PageParser {
     @Override
     public Ticket parse(Document page) {
 
-        if ( page == null ) {
-            throw new IllegalArgumentException( "Document is null" );
-        }
-
         Ticket t = new Ticket( server );
 
         // get main Ticket attributes parsing the title string
@@ -192,6 +188,7 @@ public abstract class BasePageParser implements PageParser {
     private static final String ATTACHMENTS_PATH = "a[href*=/downloadAttachment/]:not(:has(img))";
 
     /**
+     * Finds all the URL's pointing to attachments in a Ticket page.
      *
      * @param ticket
      * @param serverUrl

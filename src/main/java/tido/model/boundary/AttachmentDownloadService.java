@@ -15,6 +15,7 @@
  */
 package tido.model.boundary;
 
+import java.nio.file.Path;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -24,6 +25,7 @@ import javafx.collections.ObservableList;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 
+import tido.config.ConfigManager;
 import tido.model.AttachmentLink;
 import tido.model.Ticket;
 import tido.model.TicketState;
@@ -38,15 +40,21 @@ public class AttachmentDownloadService extends Service<Object>
 {
     private static final Logger log = Logger.getLogger( AttachmentDownloadService.class.getName() );
 
-    /**
-     * The Namer used to generate the folder name.
-     */
-    private final TicketDirectoryNamer namer;
+    /** The Namer used to generate the folder name. */
+    private  TicketDirectoryNamer namer;
+
+    /** The application configuration. */
+    private final ConfigManager config;
+
+    /** Base directory where all ticket directories will be created. */
+    private Path baseDir;
 
     //---- Lifecycle ---------------------------------------------------------------
 
-    public AttachmentDownloadService(TicketDirectoryNamer namer) {
-        this.namer = namer;
+    public AttachmentDownloadService(ConfigManager config) {
+        this.config = config;
+
+        namer = new TicketDirectoryNamer( config );
     }
 
     //---- Properties --------------------------------------------------------------
@@ -58,6 +66,10 @@ public class AttachmentDownloadService extends Service<Object>
     public ListProperty<Ticket> ticketsProperty() { return tickets; }
     public void setTickets(ObservableList<Ticket> tickets) { this.tickets.set( tickets ); }
     public ObservableList<Ticket> getTickets() { return tickets.get(); }
+
+    public void setBaseDir(Path path) {
+        baseDir = path;
+    }
 
     //---- Task --------------------------------------------------------------------
 
@@ -93,4 +105,5 @@ public class AttachmentDownloadService extends Service<Object>
             }
         };
     }
+
 }

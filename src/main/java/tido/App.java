@@ -49,31 +49,33 @@ import tido.viewmodel.TicketDownloaderViewModel;
  *
  * @author Andrea Cisternino
  */
-public class App extends Application {
-
-    public static final String FULL_NAME = "Ticket Downloader";
-    public static final String SHORT_NAME = "TiDoFx";
-
+public class App extends Application
+{
     private static final Logger log = Logger.getLogger( App.class.getName() );
+
+    public static final String FULL_NAME  = "Ticket Downloader";
+    public static final String SHORT_NAME = "TiDoFx";
 
     private static final String FXML_FILE = "TiDoFx.fxml";
 
-    private static final double STAGE_MIN_WIDTH = 700d;
+    private static final double STAGE_MIN_WIDTH  = 700d;
     private static final double STAGE_MIN_HEIGHT = 500d;
 
-    // enable using system proxy if set
-    static { System.setProperty( "java.net.useSystemProxies", "false" ); }
+    private boolean appReady = false;
 
     //---- Main objects ------------------------------------------------------------
 
     /** The application configuration. */
     private ConfigManager config;
 
-    /** The only ModelView of the application. */
-    private TicketDownloaderViewModel ticketModelView;
+    /** The main ViewModel of the application. */
+    private TicketDownloaderViewModel tidoViewModel;
 
     /** Class mediating all TeamForge interaction. */
-    private TeamForgeFacade tforge;
+    private TeamForgeFacade teamForge;
+
+    /** Manages the application's dialogs. */
+    private Dialogs dialogs;
 
     //---- Application -------------------------------------------------------------
 
@@ -82,6 +84,10 @@ public class App extends Application {
      */
     @Override
     public void init() throws Exception {
+
+        // handle proxies
+        System.setProperty( "java.net.useSystemProxies", "true" );
+
         // disable SSL certificates check
         setTrustAllCerts();
     }
@@ -92,16 +98,14 @@ public class App extends Application {
     @Override
     public void start(Stage stage) throws Exception {
 
-        // main application objects
-        config = new ConfigManager( stage ).init();
-        tforge = new TeamForgeFacade( config );
-        ticketModelView = new TicketDownloaderViewModel( config, tforge );
+        // build user interface
+        tidoViewModel = new TicketDownloaderViewModel();
+        Scene scene = new Scene( loadGui(), Color.WHITESMOKE );
 
-        // user interface
-        Parent page = loadGui();
+        String uri = getClass().getResource( "TiDoFx.css" ).toExternalForm();
+        scene.getStylesheets().add( uri );
 
-        Scene scene = new Scene( page, Color.WHITESMOKE );
-
+        // display stage ASAP
         stage.setTitle( FULL_NAME );
         stage.setMinHeight( STAGE_MIN_HEIGHT );
         stage.setMinWidth( STAGE_MIN_WIDTH );
@@ -111,10 +115,19 @@ public class App extends Application {
         stage.getIcons().add( new Image( "/img/icon-16.png" ) );
         stage.getIcons().add( new Image( "/img/icon-32.png" ) );
 
-        String uri = getClass().getResource( "TiDoFx.css" ).toExternalForm();
-        scene.getStylesheets().add( uri );
-
         stage.show();
+        stage.toFront();
+
+        // create and initialize main application objects
+        dialogs = new Dialogs( stage );
+
+        config = new ConfigManager( stage, dialogs );
+        config.postConstruct();
+
+        teamForge = new TeamForgeFacade( config );
+
+        // finish setting up GUI
+        tidoViewModel.postConstruct( teamForge, config );
     }
 
     /*
@@ -136,11 +149,11 @@ public class App extends Application {
         loader.setControllerFactory( new Callback<Class<?>, Object>() {
             @Override
             public Object call(Class<?> p) {
-                return ticketModelView;
+                return tidoViewModel;
             }
         });
 
-        log.log( Level.FINE, "loading from {0}", loader.getLocation());
+        log.log( Level.FINE, "from {0}", loader.getLocation());
 
         Parent page;
         try ( InputStream is = getClass().getResourceAsStream( FXML_FILE ) )
@@ -151,6 +164,12 @@ public class App extends Application {
         return page;
     }
 
+    /**
+     * Disable verification of HTTPS certificates. Useful for intranets
+     * without valid certificates.
+     *
+     * @throws Exception
+     */
     private void setTrustAllCerts() throws Exception {
         TrustManager[] trustAllCerts = new TrustManager[] {
             new X509TrustManager() {

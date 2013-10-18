@@ -23,6 +23,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -31,10 +32,12 @@ import javax.xml.bind.DataBindingException;
 import javax.xml.bind.JAXB;
 import javax.xml.bind.JAXBException;
 
-import javafx.scene.control.Dialogs;
+import javafx.application.Platform;
 import javafx.stage.Stage;
 
 import tido.App;
+import tido.Dialogs;
+import tido.Dialogs.Wait;
 import tido.Utils;
 
 /**
@@ -46,18 +49,26 @@ public class ConfigManager
 {
     private static final Logger log = Logger.getLogger( ConfigManager.class.getName() );
 
-    private static final String CONFIG_DIR_WIN = "TiDoFx";
+    private static final String CONFIG_DIR_WIN  = "TiDoFx";
     private static final String CONFIG_DIR_UNIX = "." + CONFIG_DIR_WIN.toLowerCase();
 
-    private static final String CONFIG_FILE = "config.xml";
-    private static final String SERVERS_FILE = "servers.xml";
+    private static final String CONFIG_FILE   = "config.xml";
+    private static final String SERVERS_FILE  = "servers.xml";
     private static final String JS_NAMER_FILE = "dir-namer.js";
+
+    /** The main Stage of the Application. Used to display error dialogs. */
+    private final Stage stage;
 
     /** The directory that contains all configuration files. */
     private final Path configDir;
 
     /** The initial directory where tickets will be stored. */
     private final Path ticketsBaseDir;
+
+    /** Utility class to display dialogs over the main GUI. */
+    private final Dialogs dialogs;
+
+    //---- Configuration objects ---------------------------------------------------
 
     /** The list of servers we can download tickets from. */
     private ServerList servers;
@@ -68,14 +79,12 @@ public class ConfigManager
     /** The JavaScript naming script as a String. */
     private String jsNamingScript;
 
-    /** The main Stage of the Application. Used to display error dialogs. */
-    private final Stage stage;
-
     //---- Lifecycle ---------------------------------------------------------------
 
-    public ConfigManager(Stage stage) {
+    public ConfigManager(Stage stage, Dialogs dialogs) {
 
         this.stage = stage;
+        this.dialogs = dialogs;
 
         final FileSystem dfs = FileSystems.getDefault();
 
@@ -91,66 +100,124 @@ public class ConfigManager
     }
 
     /**
-     * Completely initializes the instance.
-     * Must be run from the JavaFX GUI thread.
+     * Initializes the instance. Must be run from the JavaFX GUI thread.
      *
-     * @return this to allow a fluent interface.
+     * @return the object being configured.
      */
-    public ConfigManager init() {
+    public ConfigManager postConstruct() {
 
-        // config directory
+        // configuration directory
         try {
-            // eventually create the configuration directory
+
             if ( Files.notExists( configDir ) ) {
                 Files.createDirectory( configDir );
                 log.log( Level.INFO, "config dir created: {0}", configDir.toString() );
             }
+
         } catch ( IOException ex ) {
             log.log( Level.SEVERE, "creating config dir:", ex );
-            Dialogs.showErrorDialog( stage,
-                    "Error creating the application configuration directory:\n"
-                    + configDir.toString(),
-                    "Application configuration error.", App.FULL_NAME, ex );
+            dialogs.configDirError( configDir.toString(), ex, Wait.YES );
             System.exit( 1 );
         }
 
-        // create and/or load JavaScript naming file
-        loadNamingScript();
-
-        loadServers( stage );
+        // configuration data
         loadConfigData();
+
+        // server list
+        loadServers( stage );
 
         return this;
     }
 
     //---- API ---------------------------------------------------------------------
 
+    /**
+     * @return the list of configured TeamForge servers.
+     */
     public ServerList servers() {
         return servers;
     }
 
+    /**
+     * @return the general application configuration data.
+     */
     public ConfigData config() {
         return config;
     }
 
+    /**
+     * @return the namer script as String.
+     */
     public String namingScript() {
+        if ( Utils.isBlank( jsNamingScript ) ) {
+            loadNamingScript();
+        }
         return jsNamingScript;
     }
 
     /**
-     * Saves the configuration when quitting the application.
+     * Saves the application configuration.
      */
     public void saveConfig() {
         log.log( Level.INFO, "path: {0}", config.getBaseDirectory() );
 
-        JAXB.marshal( config, configDir.resolve( CONFIG_FILE ).toFile() );
+        try {
+
+            JAXB.marshal( config, configDir.resolve( CONFIG_FILE ).toFile() );
+
+        } catch ( DataBindingException | InvalidPathException ex ) {
+            log.log( Level.WARNING, "saving configuration:", ex );
+        }
     }
 
+    /**
+     * @return the {@link Stage} of the application.
+     */
     public Stage getStage() {
         return stage;
     }
 
+    /**
+     * @return the {@link Dialogs} object used to display dialogs.
+     */
+    public Dialogs getDialogs() {
+        return dialogs;
+    }
+
     //---- Support methods ---------------------------------------------------------
+
+    /**
+     * Loads the general application configuration. This is not done lazily because
+     * some values are needed to configure the GUI.
+     */
+    private void loadConfigData() {
+
+        Path configPath = configDir.resolve( CONFIG_FILE );
+
+        log.log( Level.INFO, "from {0}", configPath );
+
+        try {
+
+            config = JAXB.unmarshal( configPath.toUri(), ConfigData.class );
+
+        } catch ( DataBindingException ex ) {
+
+            JAXBException rootEx = (JAXBException) ex.getCause();
+
+            if ( rootEx.getCause() instanceof FileNotFoundException ) {
+                // this is OK, use default values
+                log.warning( "config file not found, using defaults" );
+
+                config = new ConfigData();
+                config.setBaseDirectory( ticketsBaseDir.toString() );
+                // TODO maybe better like this: config = new ConfigData().setDefaults() ?
+            } else {
+                // this is not OK
+                log.log( Level.SEVERE, "loading configuration file:", rootEx );
+                dialogs.configFileError( ex, Wait.NO );
+            }
+        }
+    }
 
     /**
      * Load the file with the TF servers info. Display a dialog in case of missing file.
@@ -164,49 +231,21 @@ public class ConfigManager
         log.log( Level.INFO, "from {0}", serversPath );
 
         try {
-            servers = JAXB.unmarshal( serversPath.toUri(), ServerList.class );
 
-            checkPasswords( servers );
+            servers = JAXB.unmarshal( serversPath.toUri(), ServerList.class );
 
         } catch ( DataBindingException ex ) {
 
-            JAXBException rootEx = (JAXBException) ex.getCause();
+            final JAXBException rootEx = (JAXBException) ex.getCause();
 
             if ( rootEx.getCause() instanceof FileNotFoundException ) {
                 log.warning( "servers file not found" );
-                Dialogs.showErrorDialog( stage,
-                        "Servers configuration file not found!\n"
-                        + "Please create the file manually in\n"
-                        + configDir.toString() + "\nand restart the aplication.",
-                        "Application configuration error.", App.FULL_NAME );
-                System.exit( 1 );
-            } else {
-                // this is not OK
-                log.log( Level.SEVERE, "loading servers configuration file:", rootEx );
-                Dialogs.showErrorDialog( stage,
-                        "Error parsing server configuration file!\n"
-                        + "A " + rootEx.getCause().getClass().getSimpleName()
-                        + " was thrown while reading the file.\n"
-                        + "Please fix the problem and restart the application.",
-                        "Application configuration error.", App.FULL_NAME, rootEx );
+                dialogs.serversFileMissing( configDir.toString(), Wait.NO );
             }
-        }
-    }
-
-    private void loadConfigData() {
-
-        Path configPath = configDir.resolve( CONFIG_FILE );
-
-        log.log( Level.INFO, "from {0}", configPath );
-
-        try {
-            config = JAXB.unmarshal( configPath.toUri(), ConfigData.class );
-        } catch ( DataBindingException ex ) {
-            // this is OK, use default values
-            log.warning( "config file not found, using defaults" );
-
-            config = new ConfigData();
-            config.setBaseDirectory( ticketsBaseDir.toString() );
+            else {
+                log.log( Level.SEVERE, "loading servers configuration file:", rootEx );
+                dialogs.serversFileError( ex, Wait.NO );
+            }
         }
     }
 
@@ -240,27 +279,10 @@ public class ConfigManager
 
         } catch ( IOException ex ) {
             log.log( Level.SEVERE, "loading naming script:", ex );
+
+            // FIXME handle error better
         }
 
         jsNamingScript = content;
-    }
-
-    private void checkPasswords(final ServerList srvs) {
-
-        if ( srvs == null ) {
-            return;
-        }
-
-        for ( ServerInfo server : srvs.getServers() ) {
-            if ( Utils.isBlank( server.getPassword() ) ) {
-                log.log( Level.INFO, "server \"{0}\" has an empty password", server.getId() );
-
-                String passwd = Dialogs.showInputDialog( stage,
-                        "Please enter password for server \"" + server.getName() + '"',
-                        "Insert password.", App.FULL_NAME );
-
-                server.setPassword( passwd );
-            }
-        }
     }
 }

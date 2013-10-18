@@ -82,29 +82,22 @@ public class TicketDownloaderViewModel implements Initializable {
     //---- End of FXML objects -----------------------------------------------------
 
     /** Class mediating all TeamForge interaction. */
-    private final TeamForgeFacade tforge;
+    private TeamForgeFacade teamForge;
 
     /** The application configuration. */
-    private final ConfigManager config;
+    private ConfigManager config;
 
     //---- Lifecycle ---------------------------------------------------------------
 
-    public TicketDownloaderViewModel(ConfigManager config, TeamForgeFacade tforge) {
-        this.config = config;
-        this.tforge = tforge;
-    }
-
+    /*
+     * See Initializable.initialize(URL url, ResourceBundle rb)
+     */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         log.log( Level.INFO, "from: {0}", url);
 
-        // configure all data bindings
-        installBindings();
-
         // finish configuration of ticket table
         setupTable();
-
-        baseDir.setText( config.config().getBaseDirectory() );
 
         // tooltips
         fetchButton.setTooltip( new Tooltip( "Downloads the content of all\nthe tickets in the list." ) );
@@ -112,11 +105,30 @@ public class TicketDownloaderViewModel implements Initializable {
         baseDirButton.setTooltip( new Tooltip( "Selects the base directory\nwhere tickets will be downloaded." ) );
     }
 
+    /**
+     * Called by the application to perform the final initialization steps.
+     *
+     * @param teamForge the TeamForge façade.
+     * @param config the application configuration.
+     */
+    public void postConstruct(TeamForgeFacade teamForge, ConfigManager config) {
+        log.info( "called" );
+
+        this.teamForge = teamForge;
+        this.config = config;
+
+        // configure all data bindings
+        installBindings();
+
+        // finish configuration of GUI
+        baseDir.setText( config.config().getBaseDirectory() );
+    }
+
     //---- GUI stuff ---------------------------------------------------------------
 
     private void installBindings() {
-        ticketList.setItems( tforge.listProperty() );
-        ticketList.disableProperty().bind( tforge.busyProperty() );
+        ticketList.setItems( teamForge.listProperty() );
+        ticketList.disableProperty().bind( teamForge.busyProperty() );
     }
 
     private void setupTable() {
@@ -169,7 +181,7 @@ public class TicketDownloaderViewModel implements Initializable {
             String path = file.getPath();
             baseDir.setText( path );
             config.config().setBaseDirectory( path );
-            tforge.setBaseDir( path );
+            teamForge.setBaseDir( path );
         }
     }
 
@@ -178,7 +190,7 @@ public class TicketDownloaderViewModel implements Initializable {
     public void clearList(ActionEvent event) {
         log.info( "button pressed" );
 
-        tforge.listProperty().clear();
+        teamForge.listProperty().clear();
     }
 
     // Handler for Button[fx:id="fetchButton"] onAction
@@ -186,8 +198,8 @@ public class TicketDownloaderViewModel implements Initializable {
     public void fetchAttachments(ActionEvent event) {
         log.info( "button pressed" );
 
-        if ( tforge.listProperty().size() > 0 ) {
-            tforge.downloadAttchments();
+        if ( teamForge.listProperty().size() > 0 ) {
+            teamForge.downloadAttachments();
         }
         else {
             log.info( "list empty, nothing to download" );
@@ -203,7 +215,7 @@ public class TicketDownloaderViewModel implements Initializable {
             // this copy is needed because of a bug in javaFX 2.2
             List<Ticket> selectedItems = new ArrayList<>( ticketList.getSelectionModel().getSelectedItems() );
             log.log( Level.FINE, "removing {0} items", selectedItems.size() );
-            tforge.listProperty().removeAll( selectedItems );
+            teamForge.listProperty().removeAll( selectedItems );
             ticketList.getSelectionModel().clearSelection();
         }
     }
@@ -319,16 +331,17 @@ public class TicketDownloaderViewModel implements Initializable {
                 log.info( url );
 
                 // call the model/repository and add this url
-                tforge.fetchTickets( Collections.singletonList( url ) );
+                teamForge.fetchTickets( Collections.singletonList( url ) );
                 sentItems++;
 
             } catch ( MalformedURLException ex ) {
             }
-        }
-        else if ( format == DataFormat.PLAIN_TEXT ) {
+
+        } else if ( format == DataFormat.PLAIN_TEXT ) {
             // dropped argument can be any string or sequence of
             String[] urls = dropped.split( "\\r?\\n" );
 
+            // build list of URL's
             List<String> goodUrls = new ArrayList<>( urls.length );
 
             for ( int i = 0; i < urls.length; i++ ) {
@@ -344,9 +357,10 @@ public class TicketDownloaderViewModel implements Initializable {
                 }
             }
 
-            tforge.fetchTickets( goodUrls );
-        }
-        else {
+            // finally download the tickets
+            teamForge.fetchTickets( goodUrls );
+
+        } else {
             log.log( Level.WARNING, "wrong format: {0}", format.toString() );
         }
         return sentItems;
