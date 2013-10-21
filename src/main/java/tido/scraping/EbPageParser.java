@@ -16,6 +16,8 @@
 package tido.scraping;
 
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import tido.config.ServerInfo;
 
 /**
@@ -46,11 +48,23 @@ class EbPageParser extends BasePageParser {
         return page.select( DESCRIPTION_PATH ).first().text().trim();
     }
 
-    private static final String ANALYSIS_PATH = "div#main td.ItemDetailValue > textarea#fv_id_fild4882.inputfield";
-
     @Override
     String extractAnalysis(Document page) {
-        return page.select( ANALYSIS_PATH ).text().trim();
+        
+        Elements rows = page.select( "table#fieldsColumn1 tr" );
+        
+        for ( Element row : rows ) {
+        
+            Elements columns = row.select( "td" );
+            
+            if ( ! columns.first().ownText().toLowerCase().contains( "analysis" ) ) {
+                continue;
+            }
+            
+            return columns.get( 2 ).text();
+        }
+        
+        return "";
     }
 
 }
