@@ -19,9 +19,12 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.logging.Logger;
 
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -32,6 +35,7 @@ import tido.config.ConfigManager;
 import tido.model.Ticket;
 
 /**
+ * Façade class mediating all access to the TeamForge server.
  *
  * @author Andrea Cisternino
  */
@@ -44,9 +48,6 @@ public class TeamForgeFacade
 
     /** The JavaFX service used to download the attachments of all the tickets in the list. */
     private final AttachmentDownloadService ads;
-
-    /** The Namer used to generate the ticket directory name. */
-//    private final TicketDirectoryNamer namer;
 
     //---- Properties --------------------------------------------------------------
 
@@ -63,6 +64,13 @@ public class TeamForgeFacade
     private final BooleanProperty busy = new SimpleBooleanProperty( this, "busy", false );
     public BooleanProperty busyProperty() { return busy; }
 
+    /**
+     * The progress of the attachment download process. This number includes
+     * all the attachments from all the tickets.
+     */
+    private final DoubleProperty progress = new SimpleDoubleProperty( this, "progress", 0.0d );
+    public DoubleProperty progressProperty() { return progress; }
+
     //---- Lifecycle ---------------------------------------------------------------
 
     public TeamForgeFacade(ConfigManager config) {
@@ -76,7 +84,6 @@ public class TeamForgeFacade
                 log.info( "tickets downloaded" );
             }
         } );
-        busy.bind( tds.runningProperty() );
 
         // AttachmentDownloadService
         ads = new AttachmentDownloadService( config );
@@ -87,6 +94,12 @@ public class TeamForgeFacade
             }
         });
         ads.setTickets( list );
+
+        // we track only the progress of the attachments download
+        progress.bind( ads.progressProperty() );
+
+        // the global busy property
+        busy.bind( Bindings.or( tds.runningProperty(), ads.runningProperty() ) );
     }
 
     //---- API ---------------------------------------------------------------------

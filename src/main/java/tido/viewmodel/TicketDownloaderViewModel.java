@@ -29,6 +29,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
@@ -78,6 +79,9 @@ public class TicketDownloaderViewModel implements Initializable {
     private Button clearButton;
     @FXML
     private Button fetchButton;
+
+    @FXML
+    private ProgressBar progressBar;
 
     //---- End of FXML objects -----------------------------------------------------
 
@@ -190,6 +194,8 @@ public class TicketDownloaderViewModel implements Initializable {
     public void clearList(ActionEvent event) {
         log.info( "button pressed" );
 
+        progressBar.progressProperty().unbind();
+        progressBar.progressProperty().set( 0.0d );
         teamForge.listProperty().clear();
     }
 
@@ -199,6 +205,7 @@ public class TicketDownloaderViewModel implements Initializable {
         log.info( "button pressed" );
 
         if ( teamForge.listProperty().size() > 0 ) {
+            progressBar.progressProperty().bind( teamForge.progressProperty() );
             teamForge.downloadAttachments();
         }
         else {
@@ -214,8 +221,12 @@ public class TicketDownloaderViewModel implements Initializable {
         if ( delKey.match( event ) ) {
             // this copy is needed because of a bug in javaFX 2.2
             List<Ticket> selectedItems = new ArrayList<>( ticketList.getSelectionModel().getSelectedItems() );
+
             log.log( Level.FINE, "removing {0} items", selectedItems.size() );
             teamForge.listProperty().removeAll( selectedItems );
+
+            progressBar.progressProperty().unbind();
+            progressBar.progressProperty().set( 0.0d );
             ticketList.getSelectionModel().clearSelection();
         }
     }
