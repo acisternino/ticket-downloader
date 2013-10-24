@@ -28,13 +28,16 @@
 .table-view .column-header {
     -fx-font-size: 12;
 }
-#titleCol .label {
+#artifactIdCol .label {
+    -fx-alignment: baseline-left;
+}
+#serverNameCol .label {
     -fx-alignment: baseline-left;
 }
 #trackerCol .label {
     -fx-alignment: baseline-left;
 }
-#artifactIdCol .label {
+#titleCol .label {
     -fx-alignment: baseline-left;
 }
 #attchNumCol .label {

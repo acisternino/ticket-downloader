@@ -11,7 +11,7 @@
 <?import javafx.scene.text.*?>
 <?scenebuilder-classpath-element ../../resources?>
 
-<AnchorPane id="AnchorPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="500.0" minWidth="700.0" prefHeight="520.0" prefWidth="720.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="tido.viewmodel.TicketDownloaderViewModel">
+<AnchorPane id="AnchorPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="450.0" minWidth="700.0" prefHeight="490.0" prefWidth="870.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="tido.viewmodel.TicketDownloaderViewModel">
   <children>
     <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="200.0" prefWidth="100.0" spacing="5.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
       <children>
@@ -31,7 +31,7 @@
         </HBox>
         <TableView fx:id="ticketTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" onDragDropped="#onDragDropped" onDragEntered="#onDragEntered" onDragExited="#onDragExited" onDragOver="#onDragOver" onKeyReleased="#tableKeyReleased" prefHeight="400.0" prefWidth="600.0" VBox.vgrow="SOMETIMES">
           <columns>
-            <TableColumn editable="false" id="processedCol" maxWidth="30.0" minWidth="30.0" prefWidth="30.0" resizable="false" sortable="false" text="" fx:id="processedCol">
+            <TableColumn editable="false" id="processedCol" maxWidth="30.0" minWidth="30.0" prefWidth="30.0" resizable="false" sortable="false" text="Status" fx:id="processedCol">
               <cellValueFactory>
                 <PropertyValueFactory property="processed" />
               </cellValueFactory>
@@ -41,7 +41,8 @@
                 <PropertyValueFactory property="id" />
               </cellValueFactory>
             </TableColumn>
-            <TableColumn editable="false" id="trackerCol" minWidth="75.0" prefWidth="150.0" text="Tracker" fx:id="trackerCol">
+            <TableColumn editable="false" id="serverNameCol" minWidth="75.0" prefWidth="140.0" text="Server" fx:id="serverNameCol" />
+            <TableColumn editable="false" id="trackerCol" minWidth="75.0" prefWidth="160.0" text="Tracker" fx:id="trackerCol">
               <cellValueFactory>
                 <PropertyValueFactory property="tracker" />
               </cellValueFactory>
@@ -60,7 +61,7 @@
         </TableView>
         <HBox alignment="CENTER_RIGHT" spacing="10.0">
           <children>
-            <ProgressBar fx:id="progressBar" prefWidth="170.0" progress="0.0" />
+            <ProgressBar fx:id="progressBar" prefWidth="180.0" progress="0.0" />
             <Region maxWidth="1.7976931348623157E308" HBox.hgrow="SOMETIMES" />
             <Button fx:id="clearButton" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#clearList" prefHeight="30.0" prefWidth="115.0" text="Clear">
               <font>
