@@ -29,7 +29,7 @@
             <Insets bottom="8.0" top="8.0" />
           </VBox.margin>
         </HBox>
-        <TableView fx:id="ticketList" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" onDragDropped="#onDragDropped" onDragEntered="#onDragEntered" onDragExited="#onDragExited" onDragOver="#onDragOver" onKeyReleased="#tableKeyReleased" prefHeight="400.0" prefWidth="600.0" VBox.vgrow="SOMETIMES">
+        <TableView fx:id="ticketTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" onDragDropped="#onDragDropped" onDragEntered="#onDragEntered" onDragExited="#onDragExited" onDragOver="#onDragOver" onKeyReleased="#tableKeyReleased" prefHeight="400.0" prefWidth="600.0" VBox.vgrow="SOMETIMES">
           <columns>
             <TableColumn editable="false" id="processedCol" maxWidth="30.0" minWidth="30.0" prefWidth="30.0" resizable="false" sortable="false" text="" fx:id="processedCol">
               <cellValueFactory>

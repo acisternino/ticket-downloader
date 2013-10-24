@@ -44,6 +44,7 @@ import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.TransferMode;
+import javafx.scene.text.Text;
 import javafx.stage.DirectoryChooser;
 import javafx.util.Callback;
 
@@ -64,7 +65,7 @@ public class TicketDownloaderViewModel implements Initializable {
     //---- FXML objects ------------------------------------------------------------
 
     @FXML
-    private TableView<Ticket> ticketList;
+    private TableView<Ticket> ticketTable;
     @FXML
     private TableColumn<Ticket, Integer> attchNumCol;
     @FXML
@@ -131,13 +132,15 @@ public class TicketDownloaderViewModel implements Initializable {
     //---- GUI stuff ---------------------------------------------------------------
 
     private void installBindings() {
-        ticketList.setItems( teamForge.listProperty() );
-        ticketList.disableProperty().bind( teamForge.busyProperty() );
+        ticketTable.setItems( teamForge.listProperty() );
+        ticketTable.disableProperty().bind( teamForge.busyProperty() );
     }
 
     private void setupTable() {
 
-        ticketList.getSelectionModel().setSelectionMode( SelectionMode.MULTIPLE );
+        ticketTable.getSelectionModel().setSelectionMode( SelectionMode.MULTIPLE );
+
+        ticketTable.setPlaceholder( new Text( "Drop ticket URL's here" ) );
 
         // column alignment
         // PENDING use pure CSS solution when available in JavaFX
@@ -220,14 +223,14 @@ public class TicketDownloaderViewModel implements Initializable {
     void tableKeyReleased(KeyEvent event) {
         if ( delKey.match( event ) ) {
             // this copy is needed because of a bug in javaFX 2.2
-            List<Ticket> selectedItems = new ArrayList<>( ticketList.getSelectionModel().getSelectedItems() );
+            List<Ticket> selectedItems = new ArrayList<>( ticketTable.getSelectionModel().getSelectedItems() );
 
             log.log( Level.FINE, "removing {0} items", selectedItems.size() );
             teamForge.listProperty().removeAll( selectedItems );
 
             progressBar.progressProperty().unbind();
             progressBar.progressProperty().set( 0.0d );
-            ticketList.getSelectionModel().clearSelection();
+            ticketTable.getSelectionModel().clearSelection();
         }
     }
 
@@ -270,7 +273,7 @@ public class TicketDownloaderViewModel implements Initializable {
     public void onDragEntered(DragEvent event) {
 
         // the drag-and-drop gesture entered the target, add graphical cues
-        if ( event.getGestureSource() != ticketList
+        if ( event.getGestureSource() != ticketTable
                 && ( event.getDragboard().hasString() || event.getDragboard().hasUrl() ) ) {
             log.fine( event.toString() );
             // TODO provide visual clue
@@ -296,7 +299,7 @@ public class TicketDownloaderViewModel implements Initializable {
 
         // data is dragged over the target
         // accept it only if it is not dragged from the same node and if it has proper data
-        if ( event.getGestureSource() != ticketList
+        if ( event.getGestureSource() != ticketTable
                 && ( event.getDragboard().hasString() || event.getDragboard().hasUrl() ) ) {
             event.acceptTransferModes( TransferMode.COPY );
         }
