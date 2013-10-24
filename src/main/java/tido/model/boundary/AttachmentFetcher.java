@@ -44,7 +44,7 @@ public class AttachmentFetcher
     // we fake Firefox
     private static final String HTTP_USER_AGENT = "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:23.0) Gecko/20100101 Firefox/23.0";
 
-    private TicketDirectoryNamer namer;
+    private final TicketDirectoryNamer namer;
 
     //---- Lifecycle ---------------------------------------------------------------
 
