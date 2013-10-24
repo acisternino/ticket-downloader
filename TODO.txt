@@ -8,12 +8,11 @@ TODO List for TiDoFx
 * [DONE] Add icons references to the README.
 * [DONE] Extract analysis field.
 * [DONE] Skip already downloaded tickets.
+* [DONE] Add server name column to table.
+* [DONE] More docs on how to customize the directory name.
 * Add and support a version number.
-* Create simple launcher scripts.
 * Attach progress to both services.
 * Improve tests.
-* More docs on how to customize the directory name.
-* Add server id or name to table.
 
 Major Features
 ==============
