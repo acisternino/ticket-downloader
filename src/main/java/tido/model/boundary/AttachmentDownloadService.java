@@ -16,9 +16,12 @@
 package tido.model.boundary;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javafx.application.Platform;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.collections.ObservableList;
@@ -65,7 +68,6 @@ public class AttachmentDownloadService extends Service<Object>
     private final ListProperty<Ticket> tickets = new SimpleListProperty<>();
     public ListProperty<Ticket> ticketsProperty() { return tickets; }
     public void setTickets(ObservableList<Ticket> tickets) { this.tickets.set( tickets ); }
-    public ObservableList<Ticket> getTickets() { return tickets.get(); }
 
     public void setBaseDir(Path path) {
         baseDir = path;
@@ -75,45 +77,93 @@ public class AttachmentDownloadService extends Service<Object>
 
     @Override
     protected Task<Object> createTask() {
-
-        final ObservableList<Ticket> tl = getTickets();
-        final int ticketNum = tl.size();
-
-        return new Task<Object>() {
-            @Override
-            protected Object call() throws Exception {
-
-                updateProgress( 0, ticketNum );
-
-                log.fine( "starting attachment download" );
-
-                int t = 0;
-                final AttachmentFetcher fetcher = new AttachmentFetcher( namer );
-
-                for ( Ticket ticket : tl ) {
-
-                    if ( ticket.isProcessed() != TicketState.NOT_PROCESSED ) {
-                        continue;
-                    }
-
-                    log.log( Level.FINE, "{0}: {1} attachments",
-                            new Object[] { ticket.getId(), ticket.getAttachmentNum() } );
-
-                    for ( AttachmentLink attachmentLink : ticket.getAttachments() ) {
-                        log.log( Level.INFO, "downloading {0}", attachmentLink );
-                        fetcher.fetch( attachmentLink );
-                        Thread.sleep( 500 );        // wait a bit to avoid swamping the server
-                    }
-                    // TODO handle return code from all attachments
-
-                    new TicketSaver( namer ).saveTicketFields( ticket );
-
-                    ticket.setProcessed( TicketState.PROCESSED_OK );
-                    updateProgress( ++t, ticketNum );
-                }
-                return null;
-            }
-        };
+        return new AdsTask( tickets );
     }
 
+    /**
+     * The concrete Task implementation.
+     */
+    private class AdsTask extends Task<Object>
+    {
+        private final Logger log = Logger.getLogger( AdsTask.class.getName() );
+
+        private final List<Ticket> origList;
+
+        public AdsTask(List<Ticket> tl) {
+            this.origList = tl;
+        }
+
+        @Override
+        protected Object call() throws Exception {
+
+            int attNum = countAttachments();
+
+            List<Ticket> tl = filterTickets();
+
+            log.log( Level.INFO, "downloading {0} attachments", attNum);
+
+            int t = 1;
+            final AttachmentFetcher fetcher = new AttachmentFetcher( namer );
+
+            for ( final Ticket ticket : tl ) {
+
+                log.log( Level.FINE, "{0}: {1} attachments", new Object[]{ ticket.getId(), ticket.getAttachmentNum() } );
+
+                for ( AttachmentLink attachmentLink : ticket.getAttachments() ) {
+
+                    log.log( Level.INFO, "downloading {0} {1}", new Object[]{ new Integer( t ), attachmentLink } );
+
+                    fetcher.fetch( attachmentLink );
+                    updateProgress( t, attNum );
+                    t++;
+
+                    Thread.sleep( 500 );        // wait a bit to avoid swamping the server
+                }
+                // TODO handle return code from all attachments
+
+                new TicketSaver( namer ).saveTicketFields( ticket );
+
+                Platform.runLater( new Runnable() {
+                    @Override
+                    public void run() {
+                        ticket.setProcessed( TicketState.PROCESSED_OK );
+                    }
+                } );
+            }
+
+            return null;
+        }
+
+        /**
+         * Counts the attachments of all the downloadable tickets.
+         *
+         * @return the total number of attachments.
+         */
+        private int countAttachments() {
+            int num = 0;
+            for ( Ticket ticket : origList ) {
+                if ( ticket.isProcessed() != TicketState.NOT_PROCESSED ) {
+                    continue;
+                }
+                num += ticket.getAttachments().size();
+            }
+            return num;
+        }
+
+        /**
+         * Extracts all processable tickets from the main list.
+         *
+         * @return a list with workable tickets.
+         */
+        private List<Ticket> filterTickets() {
+            List<Ticket> tl = new ArrayList<>();
+            for ( Ticket ticket : origList ) {
+                if ( ticket.isProcessed() != TicketState.NOT_PROCESSED ) {
+                    continue;
+                }
+                tl.add( ticket );
+            }
+            return tl;
+        }
+    }
 }
