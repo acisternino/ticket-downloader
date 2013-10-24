@@ -25,6 +25,8 @@ import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -33,6 +35,7 @@ import javafx.scene.control.ProgressBar;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
@@ -67,9 +70,11 @@ public class TicketDownloaderViewModel implements Initializable {
     @FXML
     private TableView<Ticket> ticketTable;
     @FXML
-    private TableColumn<Ticket, Integer> attchNumCol;
-    @FXML
     private TableColumn<Ticket, TicketState> processedCol;
+    @FXML
+    private TableColumn<Ticket, String> serverNameCol;
+    @FXML
+    private TableColumn<Ticket, Integer> attchNumCol;
 
     @FXML
     private TextField baseDir;
@@ -142,6 +147,23 @@ public class TicketDownloaderViewModel implements Initializable {
 
         ticketTable.setPlaceholder( new Text( "Drop ticket URL's here" ) );
 
+        serverNameCol.setCellValueFactory( new Callback<CellDataFeatures<Ticket, String>, ObservableValue<String>>() {
+            @Override
+            public ObservableValue<String> call(CellDataFeatures<Ticket, String> param) {
+                return new SimpleStringProperty( param.getValue().getSource().getName() );
+            }
+        } );
+
+        processedCol.setCellFactory( new Callback<TableColumn<Ticket, TicketState>, TableCell<Ticket, TicketState>>() {
+            @Override
+            public TableCell<Ticket, TicketState> call(TableColumn<Ticket, TicketState> param) {
+                SemaphoreTableCell cell = new SemaphoreTableCell();
+                // add style class to the cell
+                cell.getStyleClass().add( "processedCell" );
+                return cell;
+            }
+        } );
+
         // column alignment
         // PENDING use pure CSS solution when available in JavaFX
         attchNumCol.setCellFactory( new Callback<TableColumn<Ticket, Integer>, TableCell<Ticket, Integer>>() {
@@ -161,15 +183,6 @@ public class TicketDownloaderViewModel implements Initializable {
             }
         } );
 
-        processedCol.setCellFactory( new Callback<TableColumn<Ticket, TicketState>, TableCell<Ticket, TicketState>>() {
-            @Override
-            public TableCell<Ticket, TicketState> call(TableColumn<Ticket, TicketState> param) {
-                SemaphoreTableCell cell = new SemaphoreTableCell();
-                // add style class to the cell
-                cell.getStyleClass().add( "processedCell" );
-                return cell;
-            }
-        } );
     }
 
     //---- Actions -----------------------------------------------------------------
