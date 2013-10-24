@@ -46,17 +46,9 @@ public class AttachmentDownloadService extends Service<Object>
     /** The Namer used to generate the folder name. */
     private final TicketDirectoryNamer namer;
 
-    /** The application configuration. */
-    private final ConfigManager config;
-
-    /** Base directory where all ticket directories will be created. */
-    private Path baseDir;
-
     //---- Lifecycle ---------------------------------------------------------------
 
     public AttachmentDownloadService(ConfigManager config) {
-        this.config = config;
-
         namer = new TicketDirectoryNamer( config );
     }
 
@@ -69,8 +61,14 @@ public class AttachmentDownloadService extends Service<Object>
     public ListProperty<Ticket> ticketsProperty() { return tickets; }
     public void setTickets(ObservableList<Ticket> tickets) { this.tickets.set( tickets ); }
 
+    /**
+     * Sets the name of the base directory for tickets.
+     *
+     * @param path the directory name.
+     */
     public void setBaseDir(Path path) {
-        baseDir = path;
+        // just forward to the namer
+        namer.setBaseDir( path );
     }
 
     //---- Task --------------------------------------------------------------------

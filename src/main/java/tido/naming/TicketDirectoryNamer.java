@@ -44,8 +44,8 @@ public class TicketDirectoryNamer
     /** The application configuration. */
     private final ConfigManager config;
 
-    /** Safe default name for the base ticket directory. */
-    private String baseDir = ".";
+    /** Base ticket directory. */
+    private Path baseDir;
 
     /** A simple cache for the generated directory names. */
     private final WeakHashMap<Ticket, Path> nameCache = new WeakHashMap<>();
@@ -64,8 +64,8 @@ public class TicketDirectoryNamer
 
         this.config = config;
 
-        // set the base directory
-        baseDir = config.config().getBaseDirectory();
+        // set initial value of the base directory from configuration
+        baseDir = Paths.get( config.config().getBaseDirectory() );
 
         // JS engine
         engine = new ScriptEngineManager().getEngineByName( "JavaScript" );
@@ -118,7 +118,7 @@ public class TicketDirectoryNamer
             log.log( Level.FINE, "js problems; backup name: {0}", tp.toString());
         }
         else {
-            tp = Paths.get( baseDir, ticketDir );
+            tp = baseDir.resolve( ticketDir );
             log.log( Level.FINE, "generated: {0}", ticketDir);
         }
 
@@ -132,8 +132,8 @@ public class TicketDirectoryNamer
      *
      * @param dirName the name of the directory.
      */
-    public void setBaseDir(String dirName) {
-        log.fine( dirName );
+    public void setBaseDir(Path dirName) {
+        log.fine( dirName.toString() );
         baseDir = dirName;
     }
 
@@ -160,7 +160,7 @@ public class TicketDirectoryNamer
      * @return a default Path for the Ticket directory.
      */
     private Path backupName(Ticket ticket) {
-        return Paths.get( baseDir, ticket.getId() );
+        return baseDir.resolve( ticket.getId() );
     }
 
 }
