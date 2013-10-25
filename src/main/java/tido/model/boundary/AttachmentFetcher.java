@@ -52,13 +52,21 @@ public class AttachmentFetcher
         this.namer = namer;
     }
 
+    //---- API ---------------------------------------------------------------------
+
+    /**
+     *
+     * @param link
+     * @return
+     * @throws Exception
+     */
     public DownloadResult fetch(AttachmentLink link) throws Exception {
 
         DownloadResult result = new DownloadResult();
         long length;
 
         try {
-            Path ticketDir = namer.getTicketPath( link.getTicket() );
+            Path ticketDir = namer.getTicketPath( link.getTicket() );   // throws InvalidPathException
 
             HttpURLConnection conn = prepareConnection( link );         // throws IOException
 
