@@ -15,6 +15,8 @@
  */
 package tido.model.boundary;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -87,44 +89,64 @@ public class AttachmentDownloadService extends Service<Object>
 
         private final List<Ticket> origList;
 
-        public AdsTask(List<Ticket> tl) {
-            this.origList = tl;
+        public AdsTask(List<Ticket> tickets) {
+            origList = tickets;
         }
 
         @Override
         protected Object call() throws Exception {
 
-            int attNum = countAttachments();
-
+            // extract downloadable tickets
             List<Ticket> tl = filterTickets();
+
+            int attNum = countAttachments( tl );
 
             log.log( Level.INFO, "downloading {0} attachments", attNum);
 
-            int t = 1;
             final AttachmentFetcher fetcher = new AttachmentFetcher( namer );
+
+            int an = 1;
 
             for ( final Ticket ticket : tl ) {
 
-                log.log( Level.FINE, "{0}: {1} attachments", new Object[]{ ticket.getId(), ticket.getAttachmentNum() } );
+                log.log( Level.FINE, "{0}: {1} attachments", new Object[] { ticket.getId(), ticket.getAttachmentNum() } );
 
+                TicketState tempState = TicketState.PROCESSED_OK;          // default value
+
+                // save attachments
                 for ( AttachmentLink attachmentLink : ticket.getAttachments() ) {
 
-                    log.log( Level.INFO, "downloading {0} {1}", new Object[]{ new Integer( t ), attachmentLink } );
+                    log.log( Level.INFO, "downloading {0} {1}", new Object[] { new Integer( an ), attachmentLink } );
 
-                    fetcher.fetch( attachmentLink );
-                    updateProgress( t, attNum );
-                    t++;
+                    try {
+                        int result = fetcher.fetch( attachmentLink );
 
-                    Thread.sleep( 500 );        // wait a bit to avoid swamping the server
+                        // if result is NOK, record that something went wrong
+                        if ( result != HttpURLConnection.HTTP_OK ) {
+                            tempState = TicketState.PROCESSED_NOK;
+                        }
+
+                    } catch ( IOException | RuntimeException ex ) {
+                        log.log( Level.SEVERE, "downloading ticket data:", ex );
+                        tempState = TicketState.PROCESSED_NOK;
+                    }
+
+                    updateProgress( an++, attNum );
                 }
-                // TODO handle return code from all attachments
 
-                new TicketSaver( namer ).saveTicketFields( ticket );
+                // save remaining fields
+                try {
+                    new TicketSaver( namer ).saveTicketFields( ticket );
+                } catch ( IOException | RuntimeException ex ) {
+                    log.log( Level.SEVERE, "saving ticket fields:", ex );
+                }
 
+                // update icon in table
+                final TicketState ts = tempState;
                 Platform.runLater( new Runnable() {
                     @Override
                     public void run() {
-                        ticket.setProcessed( TicketState.PROCESSED_OK );
+                        ticket.setProcessed( ts );
                     }
                 } );
             }
@@ -135,14 +157,12 @@ public class AttachmentDownloadService extends Service<Object>
         /**
          * Counts the attachments of all the downloadable tickets.
          *
+         * @param tickets the list of processable tickets.
          * @return the total number of attachments.
          */
-        private int countAttachments() {
+        private int countAttachments( List<Ticket> tickets ) {
             int num = 0;
-            for ( Ticket ticket : origList ) {
-                if ( ticket.isProcessed() != TicketState.NOT_PROCESSED ) {
-                    continue;
-                }
+            for ( Ticket ticket : tickets ) {
                 num += ticket.getAttachments().size();
             }
             return num;

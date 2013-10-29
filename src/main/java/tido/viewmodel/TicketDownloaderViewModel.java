@@ -235,7 +235,7 @@ public class TicketDownloaderViewModel implements Initializable {
     @FXML
     void tableKeyReleased(KeyEvent event) {
         if ( delKey.match( event ) ) {
-            // this copy is needed because of a bug in javaFX 2.2
+            // this copy is needed because of a bug in JavaFX 2.2
             List<Ticket> selectedItems = new ArrayList<>( ticketTable.getSelectionModel().getSelectedItems() );
 
             log.log( Level.FINE, "removing {0} items", selectedItems.size() );

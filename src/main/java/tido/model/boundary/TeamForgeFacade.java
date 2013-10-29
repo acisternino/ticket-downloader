@@ -92,7 +92,7 @@ public class TeamForgeFacade
             public void handle(WorkerStateEvent t) {
                 log.info( "attachments downloaded" );
             }
-        });
+        } );
         ads.setTickets( list );
 
         // we track only the progress of the attachments download
