@@ -22,17 +22,17 @@ import javafx.scene.image.ImageView;
 import tido.model.Ticket;
 import tido.model.TicketState;
 
-import static tido.model.TicketState.NOT_PROCESSED;
-
 /**
+ * A simple TableCell that displays a colored icon depending on
+ * the state of the processed ticket.
  *
  * @author Andrea Cisternino
  */
 public class SemaphoreTableCell extends TableCell<Ticket, TicketState>
 {
-    private ImageView greyImg = new ImageView();
-    private ImageView greenImg = new ImageView();
-    private ImageView redImg = new ImageView();
+    private final ImageView greyImg = new ImageView();
+    private final ImageView greenImg = new ImageView();
+    private final ImageView redImg = new ImageView();
 
     public SemaphoreTableCell() {
         greyImg.setImage( new Image( "/img/circle_grey.png" ) );

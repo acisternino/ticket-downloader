@@ -21,13 +21,13 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import tido.model.Ticket;
 import tido.naming.TicketDirectoryNamer;
 
 /**
+ * Save other fields of the {@link Ticket} in the ticket directory.
  *
  * @author Andrea Cisternino
  */
@@ -45,35 +45,31 @@ public class TicketSaver
 
     //---- API ---------------------------------------------------------------------
 
-    /**
+    /*
      * Saves the additional ticket fields to text files in the ticket directory.
      *
      * @param ticket the ticket whose fields must be saved.
+     * @throws IOException in case of errors while operating on the directory or files.
      */
-    public void saveTicketFields(Ticket ticket) {
-        try {
-            Path ticketDir = namer.getTicketPath( ticket );
+    public void saveTicketFields(Ticket ticket) throws IOException {
 
-            // create ticket dir if not already done, needed for tickets without attachments
-            Files.createDirectories( ticketDir );
+        Path ticketDir = namer.getTicketPath( ticket );
 
-            // description
-            if ( ticket.getDescription().length() > 0 ) {
-                log.fine( "description" );
-                Files.copy( new ByteArrayInputStream( ticket.getDescription().getBytes( StandardCharsets.UTF_8 ) ),
-                        ticketDir.resolve( "description.txt" ), StandardCopyOption.REPLACE_EXISTING );
-            }
+        // create ticket dir if not already done, needed for tickets without attachments
+        Files.createDirectories( ticketDir );
 
-            // analysis
-            if ( ticket.getAnalysis().length() > 0 ) {
-                log.fine( "analysis" );
-                Files.copy( new ByteArrayInputStream( ticket.getAnalysis().getBytes( StandardCharsets.UTF_8 ) ),
-                        ticketDir.resolve( "analysis.txt" ), StandardCopyOption.REPLACE_EXISTING );
-            }
+        // description
+        if ( ticket.getDescription().length() > 0 ) {
+            log.fine( "description" );
+            Files.copy( new ByteArrayInputStream( ticket.getDescription().getBytes( StandardCharsets.UTF_8 ) ),
+                    ticketDir.resolve( "description.txt" ), StandardCopyOption.REPLACE_EXISTING );
         }
-        catch ( IOException ex ) {
-            log.log( Level.SEVERE, "saving ticket fields:", ex );
-            // TODO add dialog
+
+        // analysis
+        if ( ticket.getAnalysis().length() > 0 ) {
+            log.fine( "analysis" );
+            Files.copy( new ByteArrayInputStream( ticket.getAnalysis().getBytes( StandardCharsets.UTF_8 ) ),
+                    ticketDir.resolve( "analysis.txt" ), StandardCopyOption.REPLACE_EXISTING );
         }
     }
 }

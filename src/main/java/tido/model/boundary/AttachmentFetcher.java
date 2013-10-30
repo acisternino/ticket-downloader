@@ -18,22 +18,18 @@ package tido.model.boundary;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
 import java.net.URL;
 import java.nio.file.Files;
-import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import tido.model.AttachmentLink;
-import tido.model.DownloadResult;
 import tido.naming.TicketDirectoryNamer;
 
 /**
- * Fetches a URL and save the content into a file.
+ * Fetches an URL and save the content into a file.
  *
  * @author Andrea Cisternino
  */
@@ -55,61 +51,55 @@ public class AttachmentFetcher
     //---- API ---------------------------------------------------------------------
 
     /**
+     * Fetches and saves the ticket attachment identified by the link.
      *
-     * @param link
-     * @return
-     * @throws Exception
+     * @param link the attachment to be downloaded.
+     * @return the HTTP return code of the transaction.
+     * @throws IOException in case of errors while downloading or saving the attachment.
      */
-    public DownloadResult fetch(AttachmentLink link) throws Exception {
+    public int fetch(AttachmentLink link) throws IOException {
 
-        DownloadResult result = new DownloadResult();
-        long length;
+        Path ticketDir = namer.getTicketPath( link.getTicket() );   // throws InvalidPathException
 
-        try {
-            Path ticketDir = namer.getTicketPath( link.getTicket() );   // throws InvalidPathException
+        HttpURLConnection conn = prepareConnection( link );         // throws IOException
 
-            HttpURLConnection conn = prepareConnection( link );         // throws IOException
+        log.log( Level.INFO, "fetching url: {0}", conn.getURL().toExternalForm() );
 
-            log.log( Level.INFO, "fetching url: {0}", conn.getURL().toExternalForm() );
+        // execute the HTTP transaction
+        conn.connect();                     // throws SocketTimeoutException, IOException
 
-            // execute the HTTP transaction
-            conn.connect();                     // throws SocketTimeoutException, IOException
+        // process result
+        int responseCode = conn.getResponseCode();
+        log.log( Level.INFO, "response code: {0}", responseCode );
 
-            int responseCode = conn.getResponseCode();
-            log.log( Level.INFO, "response code: {0}", responseCode );
-
-            result.httpResult = responseCode;
-            if ( responseCode != HttpURLConnection.HTTP_OK ) {
-                return result;
-            }
-
-            String fname = extractFilename( conn.getHeaderField( "Content-Disposition" ) );
-            log.log( Level.FINE, "received filename: {0}", fname );
-
-            long expectedLength = conn.getHeaderFieldLong( "Content-Length", 0 );
-            log.log( Level.FINE, "expected length: {0}", expectedLength );
-
-            // create complete path without exceptions
-            Files.createDirectories( ticketDir );
-
-            try ( BufferedInputStream in = new BufferedInputStream( conn.getInputStream(), (int) expectedLength ) ) {
-
-                Path an = ticketDir.resolve( fname );
-                length = Files.copy( in, an, StandardCopyOption.REPLACE_EXISTING );     // throws IOException, InvalidPathException, SecurityException
-
-                log.log( Level.FINE, "saved file: {0}", an.toString() );
-            }
-
-            log.log( Level.FINE, "saved length: {0}", expectedLength );
-
-        } catch ( IOException | InvalidPathException ex ) {
-            log.log( Level.WARNING, null, ex );
-            result.error = ex;
-            return result;
+        if ( responseCode != HttpURLConnection.HTTP_OK ) {
+            // the transaction failed, no reason to continue
+            return responseCode;
         }
 
-        result.size = length;
-        return result;
+        String fname = extractFilename( conn.getHeaderField( "Content-Disposition" ) );
+        log.log( Level.FINE, "received filename: {0}", fname );
+
+        long expectedLength = conn.getHeaderFieldLong( "Content-Length", 0 );
+        log.log( Level.FINE, "expected length: {0}", expectedLength );
+
+        // create complete path without exceptions
+        Files.createDirectories( ticketDir );
+
+        // save attachment
+        long length;
+        try ( BufferedInputStream in = new BufferedInputStream( conn.getInputStream(), (int) expectedLength ) ) {
+
+            Path an = ticketDir.resolve( fname );
+            length = Files.copy( in, an, StandardCopyOption.REPLACE_EXISTING ); // throws IOException, InvalidPathException, SecurityException
+
+            log.log( Level.FINE, "saved file: {0}", an.toString() );
+        }
+
+        log.log( Level.FINE, "expected length: {0}", expectedLength );
+        log.log( Level.FINE, "saved length: {0}", length );
+
+        return responseCode;
     }
 
     //---- Support methods ---------------------------------------------------------
@@ -128,24 +118,19 @@ public class AttachmentFetcher
         URL url;
         HttpURLConnection conn;
 
-        try {
-            url = new URL( link.getUrl() );                         // throws MalformedURLException
+        url = new URL( link.getUrl() );                         // throws MalformedURLException
 
-            conn = (HttpURLConnection) url.openConnection();        // throws IOException
+        conn = (HttpURLConnection) url.openConnection();        // throws IOException
 
-            conn.setRequestMethod( "GET" );                         // throws ProtocolException
-            conn.setAllowUserInteraction( false );
-            conn.setUseCaches( false );
-            conn.setRequestProperty( "User-Agent", HTTP_USER_AGENT );
+        conn.setRequestMethod( "GET" );                         // throws ProtocolException
+        conn.setAllowUserInteraction( false );
+        conn.setUseCaches( false );
+        conn.setRequestProperty( "User-Agent", HTTP_USER_AGENT );
 
-            String cookies = link.getTicket().getSource().getCookiesHeader();
-            conn.setRequestProperty( "Cookie", cookies );
-            log.log( Level.FINE, "cookies: {0}", cookies );
+        String cookies = link.getTicket().getSource().getCookiesHeader();
+        conn.setRequestProperty( "Cookie", cookies );
+        log.log( Level.FINE, "cookies: {0}", cookies );
 
-        } catch ( MalformedURLException | ProtocolException ex ) {
-            log.log( Level.WARNING, null, ex );
-            throw new IOException( ex );
-        }
         return conn;
     }
 

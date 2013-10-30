@@ -16,6 +16,7 @@
 package tido.model;
 
 /**
+ * The state of the ticket after we tried to download its attachments.
  *
  * @author Andrea Cisternino
  */

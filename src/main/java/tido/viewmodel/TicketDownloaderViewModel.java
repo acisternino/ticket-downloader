@@ -136,11 +136,18 @@ public class TicketDownloaderViewModel implements Initializable {
 
     //---- GUI stuff ---------------------------------------------------------------
 
+    /**
+     * Binds general properties together.
+     */
     private void installBindings() {
         ticketTable.setItems( teamForge.listProperty() );
         ticketTable.disableProperty().bind( teamForge.busyProperty() );
     }
 
+    /**
+     * Finishes setting up the ticket table.
+     * Many of these settings cannot be done in FXML or CSS.
+     */
     private void setupTable() {
 
         ticketTable.getSelectionModel().setSelectionMode( SelectionMode.MULTIPLE );
@@ -165,7 +172,7 @@ public class TicketDownloaderViewModel implements Initializable {
         } );
 
         // column alignment
-        // PENDING use pure CSS solution when available in JavaFX
+        // PENDING: use pure CSS solution when available in JavaFX
         attchNumCol.setCellFactory( new Callback<TableColumn<Ticket, Integer>, TableCell<Ticket, Integer>>() {
             @Override
             public TableCell<Ticket, Integer> call(TableColumn<Ticket, Integer> param) {
@@ -182,7 +189,6 @@ public class TicketDownloaderViewModel implements Initializable {
                 return cell;
             }
         } );
-
     }
 
     //---- Actions -----------------------------------------------------------------
@@ -235,7 +241,7 @@ public class TicketDownloaderViewModel implements Initializable {
     @FXML
     void tableKeyReleased(KeyEvent event) {
         if ( delKey.match( event ) ) {
-            // this copy is needed because of a bug in javaFX 2.2
+            // this copy is needed because of a bug in JavaFX 2.2
             List<Ticket> selectedItems = new ArrayList<>( ticketTable.getSelectionModel().getSelectedItems() );
 
             log.log( Level.FINE, "removing {0} items", selectedItems.size() );
