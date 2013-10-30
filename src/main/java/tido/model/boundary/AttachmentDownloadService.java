@@ -131,6 +131,7 @@ public class AttachmentDownloadService extends Service<Object>
                         tempState = TicketState.PROCESSED_NOK;
                     }
 
+                    // this must be executed in any case otherwise we get a "running" progress bar forever
                     updateProgress( an++, attNum );
                 }
 
@@ -156,6 +157,7 @@ public class AttachmentDownloadService extends Service<Object>
 
         /**
          * Counts the attachments of all the downloadable tickets.
+         * Should be run on a filtered list.
          *
          * @param tickets the list of processable tickets.
          * @return the total number of attachments.
