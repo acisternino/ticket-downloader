@@ -1,4 +1,4 @@
-apply from: 'http://dl.bintray.com/content/shemnon/javafx-gradle/0.3.0/javafx.plugin'
+apply from: 'javafx.plugin'
 apply plugin: 'java'
 
 group = 'com.github.acisternino.tidofx'
