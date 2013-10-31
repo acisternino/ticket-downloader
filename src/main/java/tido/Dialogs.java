@@ -9,7 +9,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javafx.application.Platform;
+import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
+import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
+import javafx.util.Callback;
 
 import static javafx.scene.control.Dialogs.*;
 
@@ -29,6 +33,9 @@ public class Dialogs
     private final Stage stage;
 
     private Set<DialogTypes> displayed = EnumSet.noneOf( DialogTypes.class );
+
+    /** The password provided by the user */
+    private String password;
 
     //---- Enums -------------------------------------------------------------------
 
@@ -143,19 +150,44 @@ public class Dialogs
         return postDialog( ft, wait );
     }
 
-    public String acceptPassword(final String serverName) {
+    /**
+     * Displays a password dialog for the specific server.
+     *
+     * @param serverName the name of the server.
+     */
+    public DialogResponse acceptPassword(final String serverName) {
 
         log.fine( "called" );
-        FutureTask<String> ft = new FutureTask<>( new Callable<String>() {
+
+        FutureTask<DialogResponse> ft = new FutureTask<>( new Callable<DialogResponse>() {
             @Override
-            public String call() throws Exception {
-                return showInputDialog( stage,
-                        "Please enter password for server \"" + serverName + "\":",
-                        "Insert password.", App.FULL_NAME );
+            public DialogResponse call() throws Exception {
+                final PasswordField passwordField = new PasswordField();
+
+                HBox hbox = new HBox();
+                hbox.setSpacing( 8d );
+                hbox.getChildren().add( new Label( "Password:" ) );
+                hbox.getChildren().add( passwordField);
+
+                Callback<Void, Void> callback = new Callback<Void, Void>() {
+                    @Override
+                    public Void call(Void param) {
+                        password = passwordField.getText();
+                        return null;
+                    }
+                };
+
+                return showCustomDialog( stage, hbox,
+                        "Enter password for server \"" + serverName + '"', App.FULL_NAME,
+                        DialogOptions.OK_CANCEL, callback );
             }
         } );
 
         return postDialog( ft, Wait.YES );
+    }
+
+    public String getPassword() {
+        return password;
     }
 
     public DialogResponse failedLoginError(final String serverName, Wait wait) {
@@ -197,6 +229,9 @@ public class Dialogs
      */
     private <V> V postDialog(FutureTask<V> dialogTask, Wait wait) {
 
+        /*
+         * Run the Dialog in the proper thread.
+         */
         if ( Platform.isFxApplicationThread() ) {
             // run immediately in the GUI thread
             dialogTask.run();
@@ -206,6 +241,9 @@ public class Dialogs
             Platform.runLater( dialogTask );
         }
 
+        /*
+         * Now wait for results if the user wants them.
+         */
         try {
             if ( wait == Wait.YES ) {
                 // this will block the calling thread waiting for completion

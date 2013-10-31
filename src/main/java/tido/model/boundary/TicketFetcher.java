@@ -16,13 +16,13 @@
 package tido.model.boundary;
 
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.security.auth.login.FailedLoginException;
+
+import javafx.scene.control.Dialogs.DialogResponse;
 
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
@@ -211,11 +211,19 @@ public class TicketFetcher {
         return null;
     }
 
+    /**
+     * Displays a dialog asking the password for the given server.
+     *
+     * @param server the server.
+     * @return the password.
+     */
     private String askPassword(ServerInfo server) {
 
-        String passwd = config.getDialogs().acceptPassword( server.getName() );
+        DialogResponse response = config.getDialogs().acceptPassword( server.getName() );
 
-        if ( passwd == null ) {
+        String passwd = config.getDialogs().getPassword();
+
+        if ( response != DialogResponse.OK ) {
             log.warning( "password canceled" );
             passwd = "";
         } else if ( Utils.isBlank( passwd ) ) {
