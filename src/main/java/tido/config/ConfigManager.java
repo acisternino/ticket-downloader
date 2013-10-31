@@ -32,10 +32,8 @@ import javax.xml.bind.DataBindingException;
 import javax.xml.bind.JAXB;
 import javax.xml.bind.JAXBException;
 
-import javafx.application.Platform;
 import javafx.stage.Stage;
 
-import tido.App;
 import tido.Dialogs;
 import tido.Dialogs.Wait;
 import tido.Utils;
