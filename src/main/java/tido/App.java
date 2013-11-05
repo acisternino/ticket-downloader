@@ -77,6 +77,9 @@ public class App extends Application
     /** Manages the application's dialogs. */
     private Dialogs dialogs;
 
+    /** The application version read from jar file. */
+    private String version;
+
     //---- Application -------------------------------------------------------------
 
     /*
@@ -90,6 +93,9 @@ public class App extends Application
 
         // disable SSL certificates check
         setTrustAllCerts();
+
+        version = getClass().getPackage().getImplementationVersion();
+        log.log( Level.INFO, "version: {0}", version );
     }
 
     /*
@@ -106,7 +112,7 @@ public class App extends Application
         scene.getStylesheets().add( uri );
 
         // display stage ASAP
-        stage.setTitle( FULL_NAME );
+        stage.setTitle( FULL_NAME + " - v" + version );
         stage.setMinHeight( STAGE_MIN_HEIGHT );
         stage.setMinWidth( STAGE_MIN_WIDTH );
         stage.setScene( scene );
