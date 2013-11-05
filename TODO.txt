@@ -10,7 +10,7 @@ TODO List for TiDoFx
 * [DONE] Skip already downloaded tickets.
 * [DONE] Add server name column to table.
 * [DONE] More docs on how to customize the directory name.
-* Add and support a version number.
+* [DONE] Add and support a version number.
 * Attach progress to both services.
 * Improve tests.
 

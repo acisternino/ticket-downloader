@@ -20,6 +20,12 @@ dependencies {
     testCompile 'com.googlecode.jmockit:jmockit:1.+'
 }
 
+jar {
+    manifest {
+        attributes( 'Implementation-Version': "${project.version}" )
+    }
+}
+
 javafx {
     appID 'TiDoFx'
     appName 'Ticket Downloader'
