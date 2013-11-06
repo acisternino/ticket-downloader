@@ -11,6 +11,8 @@ TODO List for TiDoFx
 * [DONE] Add server name column to table.
 * [DONE] More docs on how to customize the directory name.
 * [DONE] Add and support a version number.
+* Remove the fixed id in the server file and use a different method.
+* Add a version to the configuration file.
 * Attach progress to both services.
 * Improve tests.
 
