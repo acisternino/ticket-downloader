@@ -19,7 +19,7 @@
           <children>
             <Label text="Base directory:">
               <labelFor>
-                <TextField fx:id="baseDir" prefWidth="200.0" HBox.hgrow="SOMETIMES" />
+                <TextField fx:id="baseDir" onAction="#typedBaseDir" prefWidth="200.0" HBox.hgrow="SOMETIMES" />
               </labelFor>
             </Label>
             <fx:reference source="baseDir" />

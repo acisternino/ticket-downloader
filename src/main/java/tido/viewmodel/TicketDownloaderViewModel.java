@@ -18,6 +18,9 @@ package tido.viewmodel;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -208,6 +211,21 @@ public class TicketDownloaderViewModel implements Initializable {
             baseDir.setText( path );
             config.config().setBaseDirectory( path );
             teamForge.setBaseDir( path );
+        }
+    }
+
+    // Handler for TextField[fx:id="baseDir"] onAction
+    @FXML
+    void typedBaseDir(ActionEvent event) {
+        final String text = baseDir.getText();
+
+        log.info( text );
+
+        Path path = FileSystems.getDefault().getPath( text );
+
+        if ( Files.exists( path ) ) {
+            config.config().setBaseDirectory( path.toString() );
+            teamForge.setBaseDir( path.toString() );
         }
     }
 
