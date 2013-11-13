@@ -25,6 +25,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import tido.Utils;
 import tido.model.AttachmentLink;
 import tido.naming.TicketDirectoryNamer;
 
@@ -78,7 +79,11 @@ public class AttachmentFetcher
         }
 
         String fname = extractFilename( conn.getHeaderField( "Content-Disposition" ) );
-        log.log( Level.FINE, "received filename: {0}", fname );
+        if ( Utils.isBlank( fname ) ) {
+            log.log( Level.INFO, "received filename empty, retrieving from page", fname );
+            fname = link.getName();
+        }
+        log.log( Level.FINE, "filename: {0}", fname );
 
         long expectedLength = conn.getHeaderFieldLong( "Content-Length", 0 );
         log.log( Level.FINE, "expected length: {0}", expectedLength );
