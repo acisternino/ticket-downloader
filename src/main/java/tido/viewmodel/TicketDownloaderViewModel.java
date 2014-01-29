@@ -15,7 +15,9 @@
  */
 package tido.viewmodel;
 
+import java.awt.Desktop;
 import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.FileSystems;
@@ -28,20 +30,27 @@ import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.CellDataFeatures;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
+import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.DataFormat;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
@@ -156,6 +165,61 @@ public class TicketDownloaderViewModel implements Initializable {
         ticketTable.getSelectionModel().setSelectionMode( SelectionMode.MULTIPLE );
 
         ticketTable.setPlaceholder( new Text( "Drop ticket URL's here" ) );
+
+        ticketTable.setRowFactory( new Callback<TableView<Ticket>, TableRow<Ticket>>() {
+            @Override
+            public TableRow<Ticket> call(TableView<Ticket> tableView) {
+                final TableRow<Ticket> row = new TableRow<>();
+
+                final ContextMenu contextMenu = new ContextMenu();
+
+                final MenuItem removeMenuItem = new MenuItem( "Remove" );
+                removeMenuItem.setOnAction( new EventHandler<ActionEvent>() {
+                    @Override
+                    public void handle(ActionEvent event) {
+                        Ticket item = row.getItem();
+                        log.log( Level.FINE, "removed item: {0}", item );
+                        ticketTable.getItems().remove( item );
+                    }
+                } );
+                final SeparatorMenuItem separatorMenuItem = new SeparatorMenuItem();
+                final MenuItem openMenuItem = new MenuItem( "Open directory" );
+                openMenuItem.setOnAction( new EventHandler<ActionEvent>() {
+                    @Override
+                    public void handle(ActionEvent event) {
+                        Ticket item = row.getItem();
+                        log.log( Level.FINE, "open directory: {0}", item.getPath() );
+                        try {
+                            Desktop.getDesktop().open( item.getPath().toFile() );
+                        } catch ( IOException ex ) {
+                            log.log( Level.SEVERE, "opening ticket directory:", ex );
+                        }
+                    }
+                } );
+                openMenuItem.setDisable( true );
+
+                contextMenu.getItems().addAll(removeMenuItem, separatorMenuItem, openMenuItem );
+
+                // activate "Open..." item only when row has been downloaded
+                row.setOnContextMenuRequested( new EventHandler<ContextMenuEvent>() {
+                    @Override
+                    public void handle(ContextMenuEvent event) {
+                        Ticket t = ((TableRow<Ticket>) event.getSource()).getItem();
+                        if ( t.getPath() != null ) {
+                            openMenuItem.setDisable( false );
+                        }
+                    }
+                } );
+
+                // Set context menu on row, but use a binding to make it only show for non-empty rows:
+                row.contextMenuProperty().bind(
+                        Bindings.when( row.emptyProperty() )
+                        .then( (ContextMenu) null )
+                        .otherwise( contextMenu )
+                );
+                return row;
+            }
+        } );
 
         serverNameCol.setCellValueFactory( new Callback<CellDataFeatures<Ticket, String>, ObservableValue<String>>() {
             @Override

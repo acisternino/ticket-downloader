@@ -15,6 +15,7 @@
  */
 package tido.model;
 
+import java.nio.file.Path;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.LongProperty;
 import javafx.beans.property.ObjectProperty;
@@ -139,6 +140,14 @@ public class Ticket
     public IntegerProperty attachmentNumProperty() { return attachmentNum; }
     public int getAttachmentNum() { return attachmentNum.get(); }
 
+    /**
+     * The Path where this ticket was saved.
+     */
+    private final ObjectProperty<Path> path = new SimpleObjectProperty<>( this, "path", null );
+    public ObjectProperty<Path> pathProperty() { return path; }
+    public Path getPath() { return path.get(); }
+    public void setPath(Path path) { this.path.set( path ); }
+
     //---- Accessors ---------------------------------------------------------------
 
     public ServerInfo getSource() {
@@ -153,6 +162,7 @@ public class Ticket
     public String toString() {
         return "Ticket{" + "url=" + url.get() + ", id=" + id.get() + ", title=" + title.get()
                 + ", kpm=" + kpm.get() + ", tracker=" + tracker.get() + ", attachments=" + attachmentNum.get()
-                + ", serverId=" + source.getId() + ", processed=" + processed.get() + '}';
+                + ", serverId=" + source.getId() + ", processed=" + processed.get()
+                + ", path=" + path.get() + '}';
     }
 }

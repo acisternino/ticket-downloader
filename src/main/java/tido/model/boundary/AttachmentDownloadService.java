@@ -144,10 +144,13 @@ public class AttachmentDownloadService extends Service<Object>
 
                 // update icon in table
                 final TicketState ts = tempState;
+                final Path tp = namer.getTicketPath( ticket );      // at this point this comes from cache
+
                 Platform.runLater( new Runnable() {
                     @Override
                     public void run() {
                         ticket.setProcessed( ts );
+                        ticket.setPath( tp );
                     }
                 } );
             }
