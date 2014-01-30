@@ -166,60 +166,7 @@ public class TicketDownloaderViewModel implements Initializable {
 
         ticketTable.setPlaceholder( new Text( "Drop ticket URL's here" ) );
 
-        ticketTable.setRowFactory( new Callback<TableView<Ticket>, TableRow<Ticket>>() {
-            @Override
-            public TableRow<Ticket> call(TableView<Ticket> tableView) {
-                final TableRow<Ticket> row = new TableRow<>();
-
-                final ContextMenu contextMenu = new ContextMenu();
-
-                final MenuItem removeMenuItem = new MenuItem( "Remove" );
-                removeMenuItem.setOnAction( new EventHandler<ActionEvent>() {
-                    @Override
-                    public void handle(ActionEvent event) {
-                        Ticket item = row.getItem();
-                        log.log( Level.FINE, "removed item: {0}", item );
-                        ticketTable.getItems().remove( item );
-                    }
-                } );
-                final SeparatorMenuItem separatorMenuItem = new SeparatorMenuItem();
-                final MenuItem openMenuItem = new MenuItem( "Open directory" );
-                openMenuItem.setOnAction( new EventHandler<ActionEvent>() {
-                    @Override
-                    public void handle(ActionEvent event) {
-                        Ticket item = row.getItem();
-                        log.log( Level.FINE, "open directory: {0}", item.getPath() );
-                        try {
-                            Desktop.getDesktop().open( item.getPath().toFile() );
-                        } catch ( IOException ex ) {
-                            log.log( Level.SEVERE, "opening ticket directory:", ex );
-                        }
-                    }
-                } );
-                openMenuItem.setDisable( true );
-
-                contextMenu.getItems().addAll(removeMenuItem, separatorMenuItem, openMenuItem );
-
-                // activate "Open..." item only when row has been downloaded
-                row.setOnContextMenuRequested( new EventHandler<ContextMenuEvent>() {
-                    @Override
-                    public void handle(ContextMenuEvent event) {
-                        Ticket t = ((TableRow<Ticket>) event.getSource()).getItem();
-                        if ( t.getPath() != null ) {
-                            openMenuItem.setDisable( false );
-                        }
-                    }
-                } );
-
-                // Set context menu on row, but use a binding to make it only show for non-empty rows:
-                row.contextMenuProperty().bind(
-                        Bindings.when( row.emptyProperty() )
-                        .then( (ContextMenu) null )
-                        .otherwise( contextMenu )
-                );
-                return row;
-            }
-        } );
+        ticketTable.setRowFactory( new TicketTableRowFactory() );
 
         serverNameCol.setCellValueFactory( new Callback<CellDataFeatures<Ticket, String>, ObservableValue<String>>() {
             @Override
@@ -238,7 +185,7 @@ public class TicketDownloaderViewModel implements Initializable {
             }
         } );
 
-        // column alignment
+        // align column to the right using CSS
         // PENDING: use pure CSS solution when available in JavaFX
         attchNumCol.setCellFactory( new Callback<TableColumn<Ticket, Integer>, TableCell<Ticket, Integer>>() {
             @Override
@@ -479,6 +426,85 @@ public class TicketDownloaderViewModel implements Initializable {
             log.log( Level.WARNING, "wrong format: {0}", format.toString() );
         }
         return sentItems;
+    }
+
+    //---- RowFactory --------------------------------------------------------------
+
+    /**
+     * RowFactory that associates a ContextMenu to each non-empty row.
+     */
+    private class TicketTableRowFactory implements Callback<TableView<Ticket>, TableRow<Ticket>> {
+
+        @Override
+        public TableRow<Ticket> call(TableView<Ticket> tableView) {
+
+            final TableRow<Ticket> row = new TableRow<>();
+
+            final ContextMenu contextMenu = createContextMenu( row );
+
+            // Set context menu on row, but use a binding to make it only show for non-empty rows:
+            row.contextMenuProperty().bind(
+                    Bindings.when( row.emptyProperty() )
+                        .then( (ContextMenu) null )
+                        .otherwise( contextMenu )
+            );
+            return row;
+        }
+
+        /**
+         * Builds a ContextMenu for the given row.
+         * @param row The TableRow object.
+         * @return the fully built ContextMenu.
+         */
+        private ContextMenu createContextMenu(final TableRow<Ticket> row) {
+
+            ContextMenu contextMenu = new ContextMenu();
+
+            // "Delete" entry
+            final MenuItem removeMenuItem = new MenuItem( "Remove" );
+            removeMenuItem.setOnAction( new EventHandler<ActionEvent>() {
+                @Override
+                public void handle(ActionEvent event) {
+                    Ticket item = row.getItem();
+                    log.log( Level.FINE, "removed item: {0}", item );
+                    ticketTable.getItems().remove( item );
+                }
+            } );
+
+            // separator
+            final SeparatorMenuItem separatorMenuItem = new SeparatorMenuItem();
+
+            // "Open directory" entry - only active after the ticket has been downloaded
+            final MenuItem openMenuItem = new MenuItem( "Open directory" );
+            openMenuItem.setOnAction( new EventHandler<ActionEvent>() {
+                @Override
+                public void handle(ActionEvent event) {
+                    try {
+                        Ticket item = row.getItem();
+                        Desktop.getDesktop().open( item.getPath().toFile() );
+                    } catch ( IOException | NullPointerException ex ) {
+                        log.log( Level.SEVERE, "opening ticket directory:", ex );
+                    }
+                }
+            } );
+            openMenuItem.setDisable( true );        // disabled by default
+
+            // activate "Open..." item only when ticket in row has been downloaded
+            row.setOnContextMenuRequested( new EventHandler<ContextMenuEvent>() {
+                @Override
+                public void handle(ContextMenuEvent event) {
+                    @SuppressWarnings("unchecked")
+                    Ticket t = ( (TableRow<Ticket>) event.getSource() ).getItem();
+                    if ( t.getPath() != null ) {
+                        openMenuItem.setDisable( false );
+                    }
+                }
+            } );
+
+            contextMenu.getItems().addAll( removeMenuItem, separatorMenuItem, openMenuItem );
+
+            return contextMenu;
+        }
     }
 
 }
