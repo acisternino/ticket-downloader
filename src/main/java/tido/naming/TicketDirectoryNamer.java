@@ -68,7 +68,7 @@ public class TicketDirectoryNamer
         baseDir = Paths.get( config.config().getBaseDirectory() );
 
         // JS engine
-        engine = new ScriptEngineManager().getEngineByName( "JavaScript" );
+        engine = new ScriptEngineManager().getEngineByName( "javascript" );
 
         try {
             // inject some global variables
