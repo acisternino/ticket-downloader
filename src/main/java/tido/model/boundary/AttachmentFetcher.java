@@ -19,9 +19,13 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -37,6 +41,8 @@ import tido.naming.TicketDirectoryNamer;
 public class AttachmentFetcher
 {
     private static final Logger log = Logger.getLogger( AttachmentFetcher.class.getName() );
+
+    private static final Set<String> DOUBLE_EXTS = new HashSet<>( Arrays.asList( "gz", "bz2", "xz" ) );
 
     // we fake Firefox
     private static final String HTTP_USER_AGENT = "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:23.0) Gecko/20100101 Firefox/23.0";
@@ -91,12 +97,23 @@ public class AttachmentFetcher
         // create complete path without exceptions
         Files.createDirectories( ticketDir );
 
-        // save attachment
         long length;
+
+        // save attachment
         try ( BufferedInputStream in = new BufferedInputStream( conn.getInputStream(), (int) expectedLength ) ) {
 
             Path an = ticketDir.resolve( fname );
-            length = Files.copy( in, an, StandardCopyOption.REPLACE_EXISTING ); // throws IOException, InvalidPathException, SecurityException
+
+            int copyNum = 0;
+            do {
+                try {
+                    length = Files.copy( in, an );  // throws IOException, InvalidPathException, SecurityException
+                    break;
+                } catch ( FileAlreadyExistsException ex ) {
+                    copyNum++;
+                    an = ticketDir.resolve( deDupName( fname, copyNum ) );
+                }
+            } while ( true );
 
             log.log( Level.FINE, "saved file: {0}", an.toString() );
         }
@@ -154,5 +171,43 @@ public class AttachmentFetcher
             }
         }
         return "";
+    }
+
+    /**
+     * De-duplicates the name of a file that is already existing on the filesystem.
+     *
+     * @param fname the name of the duplicate fie.
+     * @param copyNum number of copy.
+     * @return the de-duplicated name.
+     */
+    private String deDupName(String fname, int copyNum) {
+
+        String newName;
+
+        // position of extension
+        int extIdx = fname.lastIndexOf( '.' );
+
+        if ( extIdx > 0 ) {
+            // extension found
+
+            // check for special extensions
+            if ( DOUBLE_EXTS.contains( fname.substring( extIdx + 1 ) ) ) {
+                extIdx = fname.lastIndexOf( '.', extIdx - 1 );
+            }
+
+            String ext = fname.substring( extIdx + 1 );
+            String basename = fname.substring( 0, extIdx - 1 );
+
+            newName = basename + "(" + copyNum + ")." + ext;
+
+        } else {
+            // no extension
+
+            newName = fname + "(" + copyNum + ")";
+        }
+
+        log.log( Level.FINE, "new name: {0}", newName );
+
+        return newName;
     }
 }
