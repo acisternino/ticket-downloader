@@ -99,6 +99,7 @@ public class AttachmentDownloadService extends Service<Object>
             // extract downloadable tickets
             List<Ticket> tl = filterTickets();
 
+            // total number of attachments to download
             int attNum = countAttachments( tl );
 
             log.log( Level.INFO, "downloading {0} attachments", attNum);
@@ -155,6 +156,11 @@ public class AttachmentDownloadService extends Service<Object>
                 } );
             }
 
+            // emulate a complete download if there are no attachments
+            if ( attNum == 0 ) {
+                updateProgress( 1, 1 );
+            }
+            
             return null;
         }
 

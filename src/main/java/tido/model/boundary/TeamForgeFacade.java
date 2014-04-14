@@ -75,7 +75,7 @@ public class TeamForgeFacade
 
     public TeamForgeFacade(ConfigManager config) {
 
-        // TicketDownloadService
+        // create and configure TicketDownloadService
         tds = new TicketDownloadService( config );
         tds.setOnSucceeded( new EventHandler<WorkerStateEvent>() {
             @Override
@@ -85,7 +85,7 @@ public class TeamForgeFacade
             }
         } );
 
-        // AttachmentDownloadService
+        // create and configure AttachmentDownloadService
         ads = new AttachmentDownloadService( config );
         ads.setOnSucceeded( new EventHandler<WorkerStateEvent>() {
             @Override
