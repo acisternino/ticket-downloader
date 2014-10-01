@@ -196,7 +196,7 @@ public class AttachmentFetcher
             }
 
             String ext = fname.substring( extIdx + 1 );
-            String basename = fname.substring( 0, extIdx - 1 );
+            String basename = fname.substring( 0, extIdx );
 
             newName = basename + "(" + copyNum + ")." + ext;
 
