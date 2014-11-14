@@ -91,6 +91,9 @@ public class App extends Application
         // handle proxies
         System.setProperty( "java.net.useSystemProxies", "true" );
 
+        // disable TLS SNI extension
+        System.setProperty( "jsse.enableSNIExtension", "false" );
+
         // disable SSL certificates check
         setTrustAllCerts();
 
