@@ -13,11 +13,11 @@ repositories {
 }
 
 dependencies {
-    compile     'org.jsoup:jsoup:1.7.+'
+    compile     'org.jsoup:jsoup:1.7.3'
     compile     files( 'libs/javafx-dialogs-0.0.3.jar' )
 
-    testCompile 'junit:junit:4.+'
-    testCompile 'com.googlecode.jmockit:jmockit:1.+'
+    testCompile 'junit:junit:4.11'
+    testCompile 'com.googlecode.jmockit:jmockit:1.7'
 }
 
 jar {
@@ -44,7 +44,7 @@ javafx {
             // linux doesn't care about id, it goes un-used at the moment
             category = 'Development'
             // good luck finding a standard location for the JDK
-            javaRuntime = '/opt/jdk1.7.0_51'
+            javaRuntime = '/opt/jdk1.7.0_71'
         }
     }
 
@@ -79,10 +79,10 @@ task distribZip(type: Zip, dependsOn: jfxDeploy) {
 
 task wrapper(type: Wrapper) {
     description = 'Installs supports for the Gradle Wrapper in this project.'
-    gradleVersion = '1.11'
+    gradleVersion = '2.2'
 }
 
-tasks.withType(Compile) {
+tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
     options.compilerArgs << "-Xlint:unchecked"
 }
