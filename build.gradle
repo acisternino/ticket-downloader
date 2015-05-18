@@ -3,7 +3,7 @@ apply plugin: 'java'
 
 group = 'com.github.acisternino.tidofx'
 
-version = '0.1.3'
+version = '0.1.4b2'
 
 sourceCompatibility = 1.7
 
@@ -13,7 +13,7 @@ repositories {
 }
 
 dependencies {
-    compile     'org.jsoup:jsoup:1.7.3'
+    compile     'org.jsoup:jsoup:1.8.2'
     compile     files( 'libs/javafx-dialogs-0.0.3.jar' )
 
     testCompile 'junit:junit:4.11'
@@ -33,18 +33,18 @@ javafx {
     mainClass = 'tido.App'
 
     systemProperties = [ 'java.util.logging.config.file': 'logging.properties' ]
-    jvmArgs = [ '-client' ]
+    jvmArgs = [ '-client', '-Xmx768m', '-Xms48m' ]
 
     profiles {
         // not every possible platform override, but ones that have a known impact
         windows {
-            id = '45795590-86a0-45d9-a748-97547058303f'
+            id = '77c9c0ff-8f85-42d3-bfec-017d3a9ca7fb'
         }
         linux {
             // linux doesn't care about id, it goes un-used at the moment
             category = 'Development'
             // good luck finding a standard location for the JDK
-            javaRuntime = '/opt/jdk1.7.0_71'
+            javaRuntime = '/opt/jdk1.7.0_79'
         }
     }
 
@@ -79,7 +79,7 @@ task distribZip(type: Zip, dependsOn: jfxDeploy) {
 
 task wrapper(type: Wrapper) {
     description = 'Installs supports for the Gradle Wrapper in this project.'
-    gradleVersion = '2.2'
+    gradleVersion = '2.3'
 }
 
 tasks.withType(JavaCompile) {
