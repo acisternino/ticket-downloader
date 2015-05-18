@@ -3,7 +3,7 @@ apply plugin: 'java'
 
 group = 'com.github.acisternino.tidofx'
 
-version = '0.1.4b2'
+version = '0.1.4'
 
 sourceCompatibility = 1.7
 
