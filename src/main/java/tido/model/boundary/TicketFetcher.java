@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Andrea Cisternino <a.cisternino@gmail.com>
+ * Copyright 2013-2015 Andrea Cisternino <a.cisternino@gmail.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,7 +91,8 @@ public class TicketFetcher {
             // this can throw many exceptions, all derived from IOException
             ticketPage = Jsoup.connect( ticketUrl )
                     .cookies( server.getSession() )
-                    .maxBodySize( MAX_BODY_SIZE )
+                    .maxBodySize( 0 )           // unlimited
+                    .validateTLSCertificates( false )
                     .timeout( 4000 )
                     .get();
 

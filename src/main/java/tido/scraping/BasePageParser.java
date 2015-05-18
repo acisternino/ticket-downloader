@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Andrea Cisternino <a.cisternino@gmail.com>
+ * Copyright 2013-2015 Andrea Cisternino <a.cisternino@gmail.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import tido.model.AttachmentLink;
 import tido.model.Ticket;
 
 /**
+ * Base class containing most of the page parsing logic.
  *
  * @author Andrea Cisternino
  */
