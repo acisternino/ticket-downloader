@@ -32,7 +32,7 @@ public class Dialogs
     /** The stage used to display the dialogs. */
     private final Stage stage;
 
-    private Set<DialogTypes> displayed = EnumSet.noneOf( DialogTypes.class );
+    private final Set<DialogTypes> displayed = EnumSet.noneOf( DialogTypes.class );
 
     /** The password provided by the user */
     private String password;
@@ -110,7 +110,7 @@ public class Dialogs
                 return showErrorDialog( stage,
                         "Servers configuration file not found!\n"
                         + "Please create the file manually in\n"
-                        + configDir.toString() + "\nand restart the aplication.",
+                        + configDir + "\nand restart the aplication.",
                         MASTHEAD_CONFIG_ERROR, App.FULL_NAME );
             }
         } );
@@ -154,6 +154,7 @@ public class Dialogs
      * Displays a password dialog for the specific server.
      *
      * @param serverName the name of the server.
+     * @return the response value selected by the user.
      */
     public DialogResponse acceptPassword(final String serverName) {
 
@@ -190,6 +191,13 @@ public class Dialogs
         return password;
     }
 
+    /**
+     * Displays a "Failed Login" error dialog.
+     * 
+     * @param serverName the name of the server.
+     * @param wait set to true for a blocking dialog.
+     * @return the response value selected by the user.
+     */
     public DialogResponse failedLoginError(final String serverName, Wait wait) {
 
         log.fine( "called" );
