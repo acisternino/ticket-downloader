@@ -1,3 +1,18 @@
+/*
+ * Copyright 2013 Andrea Cisternino <a.cisternino@gmail.com>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package tido;
 
 import java.util.EnumSet;
@@ -28,6 +43,7 @@ public class Dialogs
 
     private static final String MASTHEAD_CONFIG_ERROR = "Application configuration error.";
     private static final String MASTHEAD_AUTH_ERROR   = "Authentication error.";
+    private static final String MASTHEAD_CONN_ERROR   = "Connection error.";
 
     /** The stage used to display the dialogs. */
     private final Stage stage;
@@ -192,8 +208,30 @@ public class Dialogs
     }
 
     /**
+     * Displays a "Server Connection Error" dialog.
+     *
+     * @param serverName the name of the server.
+     * @param wait set to true for a blocking dialog.
+     * @return the response value selected by the user.
+     */
+    public DialogResponse failedConnectionError(final String serverName, Wait wait) {
+
+        log.fine( "called" );
+        FutureTask<DialogResponse> ft = new FutureTask<>( new Callable<DialogResponse>() {
+            @Override
+            public DialogResponse call() throws Exception {
+                return showErrorDialog( stage,
+                        "Error connecting to server \"" + serverName + "\".",
+                        MASTHEAD_CONN_ERROR, App.FULL_NAME );
+            }
+        } );
+
+        return postDialog( ft, wait );
+    }
+
+    /**
      * Displays a "Failed Login" error dialog.
-     * 
+     *
      * @param serverName the name of the server.
      * @param wait set to true for a blocking dialog.
      * @return the response value selected by the user.
